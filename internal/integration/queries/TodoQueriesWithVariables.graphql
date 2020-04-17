@@ -1,0 +1,11 @@
+query TodosQueryWithVariables($userId: ID!) {
+  todos(userId: $userId) {
+    id
+    text
+    done
+    user {
+      id
+      name
+    }
+  }
+}

@@ -2,32 +2,9 @@ package internal
 
 import (
 	"fmt"
-	"io/ioutil"
 
-	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
-	"github.com/vektah/gqlparser/v2/parser"
-	"github.com/vektah/gqlparser/v2/validator"
 )
-
-func loadSchema(schemaFile string) (*ast.Schema, error) {
-	dat, err := ioutil.ReadFile(schemaFile)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to read schema: %w", err)
-	}
-
-	schema, graphqlError := gqlparser.LoadSchema(&ast.Source{
-		Name:  schemaFile,
-		Input: string(dat),
-	})
-
-	if graphqlError != nil {
-		return nil, graphqlError
-	}
-
-	return schema, nil
-}
 
 // Generate Generate export
 func Generate(queriesGlob, schemaFile string) error {
@@ -48,7 +25,7 @@ func Generate(queriesGlob, schemaFile string) error {
 
 	// TODO: handle no files found
 	for _, file := range files {
-		query, err := processQuery(schema, file)
+		query, err := loadQuery(schema, file)
 
 		if err != nil {
 			return fmt.Errorf("Failed to process query %s: %w", file, err)
@@ -69,9 +46,17 @@ func Generate(queriesGlob, schemaFile string) error {
 		}
 	}
 
+	var generatedQueries []Query
+
 	for _, query := range queries {
-		generateStruct(query)
+		newQueries, err := generateStruct(query)
+		if err != nil {
+			return err
+		}
+		generatedQueries = append(generatedQueries, newQueries...)
 	}
+
+	fmt.Printf("%v", generatedQueries)
 
 	return nil
 }
@@ -86,35 +71,4 @@ func validateQuery(query *ast.QueryDocument) error {
 	// TODO: reject unnamed operations
 
 	return nil
-}
-
-func generateStruct(query *ast.QueryDocument) error {
-
-	return nil
-}
-
-func processQuery(schema *ast.Schema, queryFile string) (*ast.QueryDocument, error) {
-	queryData, err := ioutil.ReadFile(queryFile)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file %s %w", queryFile, err)
-	}
-
-	source := &ast.Source{
-		Input: string(queryData),
-	}
-
-	queryDoc, parseError := parser.ParseQuery(source)
-
-	if parseError != nil {
-		return nil, parseError
-	}
-
-	validationErrors := validator.Validate(schema, queryDoc)
-
-	if validationErrors != nil {
-		return nil, validationErrors
-	}
-
-	return queryDoc, nil
 }
