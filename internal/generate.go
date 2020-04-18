@@ -2,12 +2,40 @@ package internal
 
 import (
 	"fmt"
+	"os"
+	"text/template"
 
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
+func loadClientTemplate() (*template.Template, error) {
+	t := template.Must(template.New("client").
+		Parse(string(MustAsset("template/client.tmpl"))))
+
+	return t, nil
+}
+
+func loadRequestTemplate() (*template.Template, error) {
+	t := template.Must(template.New("client").
+		Parse(string(MustAsset("template/request.tmpl"))))
+
+	return t, nil
+}
+
 // Generate Generate export
-func Generate(queriesGlob, schemaFile string) error {
+func Generate(queriesGlob, schemaFile, destination, packageName string) error {
+	clientTemplate, err := loadClientTemplate()
+
+	if err != nil {
+		return err
+	}
+
+	requestTemplate, err := loadRequestTemplate()
+
+	if err != nil {
+		return err
+	}
+
 	files, err := Glob(queriesGlob)
 
 	if err != nil {
@@ -56,7 +84,42 @@ func Generate(queriesGlob, schemaFile string) error {
 		generatedQueries = append(generatedQueries, newQueries...)
 	}
 
-	fmt.Printf("%v", generatedQueries)
+	f, err := os.OpenFile(destination, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0777)
+	if err != nil {
+		return fmt.Errorf("failed to open destination file: %s for writting: %w", destination, err)
+	}
+
+	defer f.Close()
+
+	clientTemplate.Execute(f, struct {
+		PackageName string
+	}{
+		PackageName: packageName,
+	})
+
+	for _, q := range generatedQueries {
+		type tmpl struct {
+			Name     string
+			Input    string
+			HasInput bool
+			Payload  string
+			Query    string
+		}
+
+		t := tmpl{
+			Name:    q.name,
+			Query:   q.query,
+			Payload: q.payload.builder.String(),
+		}
+
+		if q.input != nil {
+			t.Input = q.input.builder.String()
+			t.HasInput = true
+		}
+
+		requestTemplate.Execute(f, t)
+		f.WriteString("\n")
+	}
 
 	return nil
 }

@@ -1,0 +1,3 @@
+package internal
+
+//go:generate go run github.com/go-bindata/go-bindata/go-bindata -o=bindata.go -pkg=internal -modtime=1 ./template/...

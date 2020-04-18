@@ -1,10 +1,12 @@
 package internal
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vektah/gqlparser/v2/formatter"
 )
 
 // TODO: generate a struct to hold the 'method'
@@ -12,10 +14,11 @@ import (
 
 // Query Query export
 type Query struct {
-	query   string
-	name    string
-	input   *Struct
-	payload *Struct
+	query     string
+	operation *ast.OperationDefinition
+	name      string
+	input     *Struct
+	payload   *Struct
 }
 
 // Struct Struct export
@@ -52,11 +55,18 @@ func generateStruct(query *ast.QueryDocument) ([]Query, error) {
 	var queries []Query
 
 	for _, operation := range query.Operations {
+		var buff bytes.Buffer
+		queryFmt := formatter.NewFormatter(&buff)
+
+		queryFmt.FormatQueryDocument(&ast.QueryDocument{
+			Operations: ast.OperationList{operation},
+			// TODO: fragments
+		})
+
 		q := Query{
-			name: operation.Name,
-			input: &Struct{
-				builder: strings.Builder{},
-			},
+			name:      operation.Name,
+			query:     buff.String(),
+			operation: operation,
 			payload: &Struct{
 				builder: strings.Builder{},
 			},
@@ -65,22 +75,14 @@ func generateStruct(query *ast.QueryDocument) ([]Query, error) {
 		q.processPayload(operation)
 
 		if len(operation.VariableDefinitions) > 0 {
+			q.input = &Struct{
+				builder: strings.Builder{},
+			}
+
 			q.input.write("\n")
 			q.processArguments(operation.VariableDefinitions)
 			q.input.write("\n")
 		}
-
-		if len(operation.VariableDefinitions) > 0 {
-			q.payload.write(fmt.Sprintf(`func %s(input %sInput) (*%sPayload, error) {
-	return nil, nil
-}`, q.name, q.name, q.name))
-		} else {
-			q.payload.write(fmt.Sprintf(`func %s() (*%sPayload, error) {
-	return nil, nil
-}`, q.name, q.name))
-		}
-
-		// fmt.Printf("%s\n", s.builder.String())
 
 		queries = append(queries, q)
 	}
@@ -97,7 +99,7 @@ func (q *Query) processArguments(vars []*ast.VariableDefinition) {
 	}
 	q.input.deindent()
 
-	q.input.write("}\n")
+	q.input.write("}")
 }
 
 func (q *Query) processPayload(operation *ast.OperationDefinition) {
@@ -109,7 +111,7 @@ func (q *Query) processPayload(operation *ast.OperationDefinition) {
 	}
 	q.payload.deindent()
 
-	q.payload.write("}\n")
+	q.payload.write("}")
 }
 
 func (q *Query) processVariable(v *ast.VariableDefinition) {
@@ -117,7 +119,7 @@ func (q *Query) processVariable(v *ast.VariableDefinition) {
 	q.input.write(fmt.Sprintf("%s ", strings.Title(name)))
 
 	if v.Type.NamedType != "" {
-		q.input.writeNoIdent(fmt.Sprintf(" %s", v.Type.NamedType))
+		q.input.writeType(v.Type.NamedType)
 	} else {
 		// TODO
 		fmt.Printf("Variable Type: %s", v.Type)
@@ -164,7 +166,7 @@ func (q *Query) processField(selection ast.Selection) {
 			q.payload.deindent()
 			q.payload.write("}\n")
 		} else {
-			q.payload.writeNoIdent(fieldType.NamedType)
+			q.payload.writeType(fieldType.NamedType)
 
 			if !fieldType.NonNull {
 				q.payload.writeNoIdent(fmt.Sprintf(" `json:\"%s,omitempty\"`", name))
@@ -181,17 +183,21 @@ func (q *Query) processField(selection ast.Selection) {
 	}
 }
 
-func (q Query) String() string {
-	b := strings.Builder{}
-
-	b.WriteString(q.payload.builder.String())
-
-	if q.input != nil {
-		b.WriteString("\n")
-		b.WriteString(q.input.builder.String())
+func (s *Struct) writeType(namedType string) {
+	switch namedType {
+	case "ID":
+		s.writeNoIdent("string")
+		break
+	case "Boolean":
+		s.writeNoIdent("bool")
+		break
+	case "Int":
+		s.writeNoIdent("int")
+		break
+	case "String":
+		s.writeNoIdent("string")
+		break
+	default:
+		s.writeNoIdent(namedType)
 	}
-
-	// TODO: write query and method
-
-	return b.String()
 }

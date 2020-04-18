@@ -15,6 +15,8 @@ type Config struct {
 func main() {
 	var queries string
 	var schemaFile string
+	var destination string
+	var packageName string
 
 	app := &cli.App{
 		Name:  "generate",
@@ -34,9 +36,22 @@ func main() {
 				Required:    true,
 				Destination: &schemaFile,
 			},
+			&cli.StringFlag{
+				Name:        "destination",
+				Value:       "client.go",
+				Usage:       "Destination for generated client",
+				Required:    true,
+				Destination: &destination,
+			},
+			&cli.StringFlag{
+				Name:        "packageName",
+				Usage:       "Client Package Name",
+				Required:    true,
+				Destination: &packageName,
+			},
 		},
 		Action: func(c *cli.Context) error {
-			return internal.Generate(queries, schemaFile)
+			return internal.Generate(queries, schemaFile, destination, packageName)
 		},
 	}
 

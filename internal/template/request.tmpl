@@ -1,0 +1,42 @@
+var {{ .Name }} = `{{ .Query }}`
+
+{{ if .Input -}} 
+{{ .Input }}
+{{- end }}
+
+{{ .Payload }}
+
+func (c *Client) {{ .Name }}(
+    {{- if .HasInput}}input {{ .Name }}Input{{ end -}}
+) (*{{ .Name }}Payload, error) {  
+   	requestBody, err := json.Marshal(request{
+		Query: {{ .Name }},
+		{{- if .HasInput }} 
+		Variables: input,
+    	{{ end }}
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))     
+
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var payload {{ .Name }}Payload
+	err = json.Unmarshal(body, &payload)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &payload, nil
+}
