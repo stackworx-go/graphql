@@ -2,22 +2,25 @@ package generation
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func (q *Query) processArguments(vars []*ast.VariableDefinition) {
-	for _, v := range vars {
-		q.Input.fields = append(q.Input.fields, q.processVariable(v))
+func (i *InputStruct) generateInput(name string, vars []*ast.VariableDefinition) {
+	s := Struct{
+		key: name,
+		typ: inputStruct,
 	}
+
+	for _, v := range vars {
+		s.fields = append(s.fields, i.processVariable(v))
+	}
+
+	i.structs = append(i.structs, s)
 }
 
-func (q *Query) processVariable(v *ast.VariableDefinition) Field {
-	name := v.Variable
-	f := Field{
-		name: fmt.Sprintf("%s ", strings.Title(name)),
-	}
+func (i *InputStruct) processVariable(v *ast.VariableDefinition) Field {
+	f := newField(v.Variable, v.Type)
 
 	if v.Type.NamedType != "" {
 		f.typ = v.Type.NamedType
@@ -25,7 +28,24 @@ func (q *Query) processVariable(v *ast.VariableDefinition) Field {
 		panic(fmt.Errorf("Unexpected named type: %s", v.Type))
 	}
 
-	f.jsonTag(name, !v.Type.NonNull)
+	f.jsonTag(f.name, !v.Type.NonNull)
 
-	return f
+	return *f
+}
+
+func processInputType(def *ast.Definition) Struct {
+	s := Struct{
+		key: def.Name,
+		typ: fragmentStruct,
+	}
+
+	for _, field := range def.Fields {
+		name := field.Name
+		f := newField(name, field.Type)
+		f.typ = field.Type.NamedType
+
+		s.fields = append(s.fields, *f)
+	}
+
+	return s
 }

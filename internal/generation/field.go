@@ -3,6 +3,8 @@ package generation
 import (
 	"fmt"
 	"strings"
+
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
 // Field Field export
@@ -51,4 +53,24 @@ func mapType(namedType string) string {
 	default:
 		return namedType
 	}
+}
+
+func newField(name string, typ *ast.Type) *Field {
+	f := Field{
+		name: name,
+	}
+
+	f.nullable = true
+
+	if typ.NonNull {
+		f.nullable = false
+	}
+
+	// List Type
+	if typ.NamedType == "" {
+		f.list = true
+	}
+
+	f.jsonTag(f.name, !typ.NonNull)
+	return &f
 }

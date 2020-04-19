@@ -14,7 +14,7 @@ type Query struct {
 	Query     string
 	operation *ast.OperationDefinition
 	Name      string
-	Input     *Struct
+	Input     *InputStruct
 	Payload   *PayloadStruct
 }
 
@@ -33,6 +33,8 @@ type Struct struct {
 	typ    structType
 }
 
+type Structs []Struct
+
 // Name Name export
 func (s Struct) Name() string {
 	if s.typ == inputStruct || s.typ == payloadStruct {
@@ -44,7 +46,25 @@ func (s Struct) Name() string {
 
 // PayloadStruct PayloadStruct export
 type PayloadStruct struct {
-	structs []Struct
+	structs Structs
+}
+
+// InputStruct InputStruct export
+type InputStruct struct {
+	structs Structs
+}
+
+// GenerateInputStructs GenerateInputStructs export
+func GenerateInputStructs(schema *ast.Schema) (Structs, error) {
+	var inputStructs []Struct
+
+	for _, t := range schema.Types {
+		if !t.BuiltIn && t.Kind == ast.InputObject {
+			inputStructs = append(inputStructs, processInputType(t))
+		}
+	}
+
+	return inputStructs, nil
 }
 
 // GenerateStruct GenerateStruct export
@@ -70,12 +90,10 @@ func GenerateStruct(query *ast.QueryDocument) ([]Query, error) {
 
 		q.Payload.generatePayload(operation)
 
+		// TODO: rather make each variable its own argument
 		if len(operation.VariableDefinitions) > 0 {
-			q.Input = &Struct{
-				key: operation.Name,
-				typ: inputStruct,
-			}
-			q.processArguments(operation.VariableDefinitions)
+			q.Input = &InputStruct{}
+			q.Input.generateInput(operation.Name, operation.VariableDefinitions)
 		}
 
 		queries = append(queries, q)
@@ -97,6 +115,18 @@ func (p PayloadStruct) Print() string {
 }
 
 // Print Print export
+func (p InputStruct) Print() string {
+	b := strings.Builder{}
+
+	for _, s := range p.structs {
+		b.WriteString(s.Print())
+		b.WriteString("\n")
+	}
+
+	return b.String()
+}
+
+// Print Print export
 func (s Struct) Print() string {
 	b := strings.Builder{}
 
@@ -107,6 +137,18 @@ func (s Struct) Print() string {
 	}
 
 	b.WriteString("}")
+
+	return b.String()
+}
+
+// Print Print export
+func (ss Structs) Print() string {
+	b := strings.Builder{}
+
+	for _, s := range ss {
+		b.WriteString(s.Print())
+		b.WriteString("\n")
+	}
 
 	return b.String()
 }

@@ -43,8 +43,12 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	CreateTodoPayload struct {
+		Todo func(childComplexity int) int
+	}
+
 	Mutation struct {
-		CreateTodo func(childComplexity int, input model.NewTodo) int
+		CreateTodo func(childComplexity int, input model.CreateTodoInput) int
 	}
 
 	Query struct {
@@ -65,7 +69,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error)
+	CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.CreateTodoPayload, error)
 }
 type QueryResolver interface {
 	Todos(ctx context.Context, userID *string) ([]*model.Todo, error)
@@ -86,6 +90,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "CreateTodoPayload.todo":
+		if e.complexity.CreateTodoPayload.Todo == nil {
+			break
+		}
+
+		return e.complexity.CreateTodoPayload.Todo(childComplexity), true
+
 	case "Mutation.createTodo":
 		if e.complexity.Mutation.CreateTodo == nil {
 			break
@@ -96,7 +107,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateTodo(childComplexity, args["input"].(model.NewTodo)), true
+		return e.complexity.Mutation.CreateTodo(childComplexity, args["input"].(model.CreateTodoInput)), true
 
 	case "Query.todos":
 		if e.complexity.Query.Todos == nil {
@@ -236,13 +247,17 @@ type Query {
   todos(userId: ID): [Todo!]!
 }
 
-input NewTodo {
+input CreateTodoInput {
   text: String!
   userId: String!
 }
 
+type CreateTodoPayload {
+  todo: Todo!
+}
+
 type Mutation {
-  createTodo(input: NewTodo!): Todo!
+  createTodo(input: CreateTodoInput!): CreateTodoPayload!
 }
 `, BuiltIn: false},
 }
@@ -255,9 +270,9 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.NewTodo
+	var arg0 model.CreateTodoInput
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNNewTodo2githubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐNewTodo(ctx, tmp)
+		arg0, err = ec.unmarshalNCreateTodoInput2githubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -330,6 +345,40 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _CreateTodoPayload_todo(ctx context.Context, field graphql.CollectedField, obj *model.CreateTodoPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CreateTodoPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Todo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Todo)
+	fc.Result = res
+	return ec.marshalNTodo2ᚖgithubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodo(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -354,7 +403,7 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTodo(rctx, args["input"].(model.NewTodo))
+		return ec.resolvers.Mutation().CreateTodo(rctx, args["input"].(model.CreateTodoInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -366,9 +415,9 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Todo)
+	res := resTmp.(*model.CreateTodoPayload)
 	fc.Result = res
-	return ec.marshalNTodo2ᚖgithubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodo(ctx, field.Selections, res)
+	return ec.marshalNCreateTodoPayload2ᚖgithubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoPayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1740,8 +1789,8 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputNewTodo(ctx context.Context, obj interface{}) (model.NewTodo, error) {
-	var it model.NewTodo
+func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, obj interface{}) (model.CreateTodoInput, error) {
+	var it model.CreateTodoInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -1771,6 +1820,33 @@ func (ec *executionContext) unmarshalInputNewTodo(ctx context.Context, obj inter
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var createTodoPayloadImplementors = []string{"CreateTodoPayload"}
+
+func (ec *executionContext) _CreateTodoPayload(ctx context.Context, sel ast.SelectionSet, obj *model.CreateTodoPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, createTodoPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CreateTodoPayload")
+		case "todo":
+			out.Values[i] = ec._CreateTodoPayload_todo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
 
 var mutationImplementors = []string{"Mutation"}
 
@@ -2180,6 +2256,24 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCreateTodoInput2githubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoInput(ctx context.Context, v interface{}) (model.CreateTodoInput, error) {
+	return ec.unmarshalInputCreateTodoInput(ctx, v)
+}
+
+func (ec *executionContext) marshalNCreateTodoPayload2githubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoPayload(ctx context.Context, sel ast.SelectionSet, v model.CreateTodoPayload) graphql.Marshaler {
+	return ec._CreateTodoPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCreateTodoPayload2ᚖgithubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoPayload(ctx context.Context, sel ast.SelectionSet, v *model.CreateTodoPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CreateTodoPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	return graphql.UnmarshalID(v)
 }
@@ -2192,10 +2286,6 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNNewTodo2githubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐNewTodo(ctx context.Context, v interface{}) (model.NewTodo, error) {
-	return ec.unmarshalInputNewTodo(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

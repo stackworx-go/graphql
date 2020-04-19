@@ -13,7 +13,8 @@ type Resolver struct {
 		Args  TodosArgs
 	}
 	CreateTodo struct {
-		Data  *model.Todo
+		Data  *model.CreateTodoPayload
 		Error error
+		Args  model.CreateTodoInput
 	}
 }

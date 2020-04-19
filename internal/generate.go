@@ -85,6 +85,12 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 		generatedQueries = append(generatedQueries, newQueries...)
 	}
 
+	inputStructs, err := generation.GenerateInputStructs(schema)
+
+	if err != nil {
+		return fmt.Errorf("Failed to generate input structs: %w", err)
+	}
+
 	f, err := os.OpenFile(destination, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0777)
 	if err != nil {
 		return fmt.Errorf("failed to open destination file: %s for writting: %w", destination, err)
@@ -93,9 +99,11 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 	defer f.Close()
 
 	err = clientTemplate.Execute(f, struct {
-		PackageName string
+		PackageName  string
+		InputStructs string
 	}{
-		PackageName: packageName,
+		PackageName:  packageName,
+		InputStructs: inputStructs.Print(),
 	})
 
 	if err != nil {

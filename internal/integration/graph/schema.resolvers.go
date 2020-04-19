@@ -10,7 +10,8 @@ import (
 	"github.com/stackworx-go/gqlgen-relay/internal/integration/graph/model"
 )
 
-func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
+func (r *mutationResolver) CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.CreateTodoPayload, error) {
+	r.Resolver.CreateTodo.Args = input
 	return r.Resolver.CreateTodo.Data, r.Resolver.CreateTodo.Error
 }
 

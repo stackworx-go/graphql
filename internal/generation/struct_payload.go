@@ -26,41 +26,26 @@ func (p *PayloadStruct) processSelectionSet(key string, structType structType, s
 func (p *PayloadStruct) processField(parent Struct, selection ast.Selection) Field {
 	field, ok := selection.(*ast.Field)
 
-	f := Field{}
-
-	f.nullable = true
-
 	if ok {
-		fieldType := field.Definition.Type
-		f.name = field.Name
+		name := field.Name
 
 		if field.Alias != "" {
-			f.name = field.Alias
+			name = field.Alias
 		}
 
-		if fieldType.NonNull {
-			f.nullable = false
-		}
-
-		// List Type
-		if fieldType.NamedType == "" {
-			f.list = true
-		}
+		f := newField(name, field.Definition.Type)
 
 		// Nested
 		if len(field.SelectionSet) > 0 {
 			f.typ = fmt.Sprintf("%s%s", parent.Name(), strings.Title(field.Name))
 			p.processSelectionSet(f.typ, fragmentStruct, field.SelectionSet)
 		} else {
-			f.typ = fieldType.NamedType
+			f.typ = field.Definition.Type.NamedType
 		}
 
-		f.jsonTag(f.name, !fieldType.NonNull)
-
-	} else {
-		// TODO: remove after more testing
-		panic(fmt.Errorf("unexpected Selection Type: %v", selection))
+		return *f
 	}
 
-	return f
+	// TODO: remove after more testing
+	panic(fmt.Errorf("unexpected Selection Type: %v", selection))
 }

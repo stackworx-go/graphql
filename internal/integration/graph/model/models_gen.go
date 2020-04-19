@@ -2,9 +2,13 @@
 
 package model
 
-type NewTodo struct {
+type CreateTodoInput struct {
 	Text   string `json:"text"`
 	UserID string `json:"userId"`
+}
+
+type CreateTodoPayload struct {
+	Todo *Todo `json:"todo"`
 }
 
 type Todo struct {
