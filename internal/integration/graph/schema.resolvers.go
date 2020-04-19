@@ -5,18 +5,17 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/stackworx-go/gqlgen-relay/internal/integration/graph/generated"
 	"github.com/stackworx-go/gqlgen-relay/internal/integration/graph/model"
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Resolver.CreateTodo.Data, r.Resolver.CreateTodo.Error
 }
 
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Resolver.Todos.Data, r.Resolver.Todos.Error
 }
 
 // Mutation returns generated.MutationResolver implementation.

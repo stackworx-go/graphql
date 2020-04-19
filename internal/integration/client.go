@@ -2,10 +2,13 @@
 package integration
 
 import (
+	"fmt"
     "bytes"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 type Client struct {
@@ -18,6 +21,14 @@ type request struct {
 	// OperationName string                 `json:"operationName"`
 	Variables     interface{} `json:"variables"`
 	Extensions    map[string]interface{} `json:"extensions"`
+}
+
+type GraphqlError struct {
+	Errors []gqlerror.Error
+}
+
+func (e *GraphqlError) Error() string {
+	return "Graphql Request Failed"
 }
 
 var TodosQuery = `query TodosQuery {
@@ -47,6 +58,11 @@ type TodosQueryPayload struct {
   }
 }
 
+type responseTodosQuery struct {
+	Data *TodosQueryPayload `json:"data"`
+	Errors []gqlerror.Error `json:errors`
+}
+
 func (c *Client) TodosQuery() (*TodosQueryPayload, error) {  
    	requestBody, err := json.Marshal(request{
 		Query: TodosQuery,
@@ -56,8 +72,11 @@ func (c *Client) TodosQuery() (*TodosQueryPayload, error) {
 		return nil, err
 	}
 
-	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))     
+	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))  
 
+	if err != nil {
+		return nil, err
+	}   
 
 	defer resp.Body.Close()
 
@@ -67,14 +86,22 @@ func (c *Client) TodosQuery() (*TodosQueryPayload, error) {
 		return nil, err
 	}
 
-	var payload TodosQueryPayload
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, body)
+	}
+
+	var payload responseTodosQuery
 	err = json.Unmarshal(body, &payload)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &payload, nil
+	if len(payload.Errors) > 0 {
+		return nil, &GraphqlError{Errors: payload.Errors}
+	}
+
+	return payload.Data, nil
 }
 
 var TodosQueryWithVariables = `query TodosQueryWithVariables ($userId: ID!) {
@@ -108,6 +135,11 @@ type TodosQueryWithVariablesPayload struct {
   }
 }
 
+type responseTodosQueryWithVariables struct {
+	Data *TodosQueryWithVariablesPayload `json:"data"`
+	Errors []gqlerror.Error `json:errors`
+}
+
 func (c *Client) TodosQueryWithVariables(input TodosQueryWithVariablesInput) (*TodosQueryWithVariablesPayload, error) {  
    	requestBody, err := json.Marshal(request{
 		Query: TodosQueryWithVariables, 
@@ -119,8 +151,11 @@ func (c *Client) TodosQueryWithVariables(input TodosQueryWithVariablesInput) (*T
 		return nil, err
 	}
 
-	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))     
+	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))  
 
+	if err != nil {
+		return nil, err
+	}   
 
 	defer resp.Body.Close()
 
@@ -130,13 +165,21 @@ func (c *Client) TodosQueryWithVariables(input TodosQueryWithVariablesInput) (*T
 		return nil, err
 	}
 
-	var payload TodosQueryWithVariablesPayload
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, body)
+	}
+
+	var payload responseTodosQueryWithVariables
 	err = json.Unmarshal(body, &payload)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &payload, nil
+	if len(payload.Errors) > 0 {
+		return nil, &GraphqlError{Errors: payload.Errors}
+	}
+
+	return payload.Data, nil
 }
 

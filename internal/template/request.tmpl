@@ -6,6 +6,11 @@ var {{ .Name }} = `{{ .Query }}`
 
 {{ .Payload }}
 
+type response{{ .Name }} struct {
+	Data *{{ .Name }}Payload `json:"data"`
+	Errors []gqlerror.Error `json:errors`
+}
+
 func (c *Client) {{ .Name }}(
     {{- if .HasInput}}input {{ .Name }}Input{{ end -}}
 ) (*{{ .Name }}Payload, error) {  
@@ -20,8 +25,11 @@ func (c *Client) {{ .Name }}(
 		return nil, err
 	}
 
-	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))     
+	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))  
 
+	if err != nil {
+		return nil, err
+	}   
 
 	defer resp.Body.Close()
 
@@ -31,12 +39,20 @@ func (c *Client) {{ .Name }}(
 		return nil, err
 	}
 
-	var payload {{ .Name }}Payload
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, body)
+	}
+
+	var payload response{{ .Name }}
 	err = json.Unmarshal(body, &payload)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &payload, nil
+	if len(payload.Errors) > 0 {
+		return nil, &GraphqlError{Errors: payload.Errors}
+	}
+
+	return payload.Data, nil
 }

@@ -2,10 +2,13 @@
 package {{ .PackageName }}
 
 import (
+	"fmt"
     "bytes"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 type Client struct {
@@ -18,5 +21,13 @@ type request struct {
 	// OperationName string                 `json:"operationName"`
 	Variables     interface{} `json:"variables"`
 	Extensions    map[string]interface{} `json:"extensions"`
+}
+
+type GraphqlError struct {
+	Errors []gqlerror.Error
+}
+
+func (e *GraphqlError) Error() string {
+	return "Graphql Request Failed"
 }
 
