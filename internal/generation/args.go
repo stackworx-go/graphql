@@ -6,20 +6,17 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func (i *InputStruct) generateInput(name string, vars []*ast.VariableDefinition) {
-	s := Struct{
-		key: name,
-		typ: inputStruct,
-	}
+func generateArgs(vars []*ast.VariableDefinition) Arguments {
+	args := Arguments{}
 
 	for _, v := range vars {
-		s.fields = append(s.fields, i.processVariable(v))
+		args = append(args, processVariable(v))
 	}
 
-	i.structs = append(i.structs, s)
+	return args
 }
 
-func (i *InputStruct) processVariable(v *ast.VariableDefinition) Field {
+func processVariable(v *ast.VariableDefinition) argument {
 	f := newField(v.Variable, v.Type)
 
 	if v.Type.NamedType != "" {
@@ -28,9 +25,11 @@ func (i *InputStruct) processVariable(v *ast.VariableDefinition) Field {
 		panic(fmt.Errorf("Unexpected named type: %s", v.Type))
 	}
 
-	f.jsonTag(f.name, !v.Type.NonNull)
-
-	return *f
+	// TODO: refactor this out of field
+	return argument{
+		Name: f.name,
+		Type: f.getType(),
+	}
 }
 
 func processInputType(def *ast.Definition) Struct {

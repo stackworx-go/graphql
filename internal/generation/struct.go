@@ -14,7 +14,7 @@ type Query struct {
 	Query     string
 	operation *ast.OperationDefinition
 	Name      string
-	Input     *InputStruct
+	Arguments Arguments
 	Payload   *PayloadStruct
 }
 
@@ -49,9 +49,12 @@ type PayloadStruct struct {
 	structs Structs
 }
 
-// InputStruct InputStruct export
-type InputStruct struct {
-	structs Structs
+// Arguments Arguments export
+type Arguments []argument
+
+type argument struct {
+	Name string
+	Type string
 }
 
 // GenerateInputStructs GenerateInputStructs export
@@ -85,15 +88,14 @@ func GenerateStruct(query *ast.QueryDocument) ([]Query, error) {
 			Query:     buff.String(),
 			operation: operation,
 			Payload:   &PayloadStruct{},
-			Input:     nil,
+			Arguments: nil,
 		}
 
 		q.Payload.generatePayload(operation)
 
 		// TODO: rather make each variable its own argument
 		if len(operation.VariableDefinitions) > 0 {
-			q.Input = &InputStruct{}
-			q.Input.generateInput(operation.Name, operation.VariableDefinitions)
+			q.Arguments = generateArgs(operation.VariableDefinitions)
 		}
 
 		queries = append(queries, q)
@@ -104,18 +106,6 @@ func GenerateStruct(query *ast.QueryDocument) ([]Query, error) {
 
 // Print Print export
 func (p PayloadStruct) Print() string {
-	b := strings.Builder{}
-
-	for _, s := range p.structs {
-		b.WriteString(s.Print())
-		b.WriteString("\n")
-	}
-
-	return b.String()
-}
-
-// Print Print export
-func (p InputStruct) Print() string {
 	b := strings.Builder{}
 
 	for _, s := range p.structs {

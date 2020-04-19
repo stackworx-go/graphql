@@ -1,9 +1,5 @@
 var {{ .Name }} = `{{ .Query }}`
 
-{{ if .Input -}} 
-{{ .Input }}
-{{- end }}
-
 {{ .Payload }}
 
 type response{{ .Name }} struct {
@@ -12,13 +8,17 @@ type response{{ .Name }} struct {
 }
 
 func (c *Client) {{ .Name }}(
-    {{- if .HasInput}}input {{ .Name }}Input{{ end -}}
+    {{- if .HasInput}}{{range $index, $element := .Arguments}}{{if $index}},{{end}}{{ .Name }} {{ .Type }}{{end}}{{ end -}}
 ) (*{{ .Name }}Payload, error) {  
    	requestBody, err := json.Marshal(request{
 		Query: {{ .Name }},
 		{{- if .HasInput }} 
-		Variables: input,
-    	{{ end }}
+		Variables: map[string]interface{}{
+			{{- range $index, $element := .Arguments}}
+			"{{ .Name }}": {{ .Name }},
+			{{- end }}
+		},
+    	{{- end }}
 	})
 
 	if err != nil {

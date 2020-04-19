@@ -10,7 +10,7 @@
       "request": "launch",
       "mode": "test",
       "program": "${fileDirname}",
-      "args": ["-test.run", "TestTodosQuery"]
+      "args": ["-test.run", "TestCreateTodoMutation"]
     },
     {
       "name": "Launch",

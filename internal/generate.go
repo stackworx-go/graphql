@@ -112,11 +112,11 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 
 	for _, q := range generatedQueries {
 		type tmpl struct {
-			Name     string
-			Input    string
-			HasInput bool
-			Payload  string
-			Query    string
+			Name      string
+			Arguments generation.Arguments
+			HasInput  bool
+			Payload   string
+			Query     string
 		}
 
 		t := tmpl{
@@ -125,8 +125,8 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 			Payload: q.Payload.Print(),
 		}
 
-		if q.Input != nil {
-			t.Input = q.Input.Print()
+		if q.Arguments != nil {
+			t.Arguments = q.Arguments
 			t.HasInput = true
 		}
 

@@ -79,9 +79,7 @@ func TestTodosQueryWithVariables(t *testing.T) {
 	}
 
 	// when
-	data, err := client.TodosQueryWithVariables(TodosQueryWithVariablesInput{
-		UserId: "4",
-	})
+	data, err := client.TodosQueryWithVariables("4")
 
 	// then
 	assert.NoError(t, err)
@@ -104,15 +102,17 @@ func TestCreateTodoMutation(t *testing.T) {
 	// given
 	resolvers := &graph.Resolver{}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))
-	resolvers.Todos.Data = []*model.Todo{{
-		ID:   "1",
-		Text: "Buy Groceries",
-		Done: false,
-		User: &model.User{
+	resolvers.CreateTodo.Data = &model.CreateTodoPayload{
+		Todo: &model.Todo{
 			ID:   "1",
-			Name: "John",
+			Text: "Buy Groceries",
+			Done: false,
+			User: &model.User{
+				ID:   "1",
+				Name: "John",
+			},
 		},
-	}}
+	}
 
 	ts := httptest.NewServer(srv)
 	defer ts.Close()
@@ -122,23 +122,24 @@ func TestCreateTodoMutation(t *testing.T) {
 	}
 
 	// when
-	// data, err := client.CreateTodoMutation(CreateTodoMutationInput{
-	// 	UserId: "4",
-	// })
+	data, err := client.CreateTodoMutation(CreateTodoInput{
+		Text:   "Create TODO",
+		UserId: "4",
+	})
 
-	// // then
-	// assert.NoError(t, err)
-	// assert.Equal(t, resolvers.Todos.Args, graph.TodosArgs{UserID: String("4")})
-	// assert.Equal(t, data, &TodosQueryWithVariablesPayload{
-	// 	Todos: []TodosQueryWithVariablesPayloadTodos{
-	// 		{
-	// 			Id:   "1",
-	// 			Text: "Buy Groceries",
-	// 			User: TodosQueryWithVariablesPayloadTodosUser{
-	// 				Id:   "1",
-	// 				Name: "John",
-	// 			},
-	// 		},
-	// 	},
-	// })
+	// then
+	assert.NoError(t, err)
+	assert.Equal(t, resolvers.CreateTodo.Args, model.CreateTodoInput{UserID: "4", Text: "Create TODO"})
+	assert.Equal(t, data, &CreateTodoMutationPayload{
+		CreateTodo: CreateTodoMutationPayloadCreateTodo{
+			Todo: CreateTodoMutationPayloadCreateTodoTodo{
+				Id:   "1",
+				Text: "Buy Groceries",
+				User: CreateTodoMutationPayloadCreateTodoTodoUser{
+					Id:   "1",
+					Name: "John",
+				},
+			},
+		},
+	})
 }

@@ -2,9 +2,9 @@
 package integration
 
 import (
-	"fmt"
-    "bytes"
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -17,10 +17,10 @@ type Client struct {
 }
 
 type request struct {
-	Query         string                 `json:"query"`
+	Query string `json:"query"`
 	// OperationName string                 `json:"operationName"`
-	Variables     interface{} `json:"variables"`
-	Extensions    map[string]interface{} `json:"extensions"`
+	Variables  interface{}            `json:"variables"`
+	Extensions map[string]interface{} `json:"extensions"`
 }
 
 type GraphqlError struct {
@@ -32,9 +32,10 @@ func (e *GraphqlError) Error() string {
 }
 
 type CreateTodoInput struct {
-	Text string `json:"text"`
+	Text   string `json:"text"`
 	UserId string `json:"userId"`
 }
+
 var CreateTodoMutation = `mutation CreateTodoMutation ($input: CreateTodoInput!) {
 	createTodo(input: $input) {
 		todo {
@@ -50,19 +51,14 @@ var CreateTodoMutation = `mutation CreateTodoMutation ($input: CreateTodoInput!)
 }
 `
 
-type CreateTodoMutationInput struct {
-	Input CreateTodoInput `json:"input"`
-}
-
-
 type CreateTodoMutationPayloadCreateTodoTodoUser struct {
-	Id string `json:"id"`
+	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 type CreateTodoMutationPayloadCreateTodoTodo struct {
-	Id string `json:"id"`
-	Text string `json:"text"`
-	Done bool `json:"done"`
+	Id   string                                      `json:"id"`
+	Text string                                      `json:"text"`
+	Done bool                                        `json:"done"`
 	User CreateTodoMutationPayloadCreateTodoTodoUser `json:"user"`
 }
 type CreateTodoMutationPayloadCreateTodo struct {
@@ -72,28 +68,28 @@ type CreateTodoMutationPayload struct {
 	CreateTodo CreateTodoMutationPayloadCreateTodo `json:"createTodo"`
 }
 
-
 type responseCreateTodoMutation struct {
-	Data *CreateTodoMutationPayload `json:"data"`
-	Errors []gqlerror.Error `json:errors`
+	Data   *CreateTodoMutationPayload `json:"data"`
+	Errors []gqlerror.Error           `json:errors`
 }
 
-func (c *Client) CreateTodoMutation(input CreateTodoMutationInput) (*CreateTodoMutationPayload, error) {  
-   	requestBody, err := json.Marshal(request{
-		Query: CreateTodoMutation, 
-		Variables: input,
-    	
+func (c *Client) CreateTodoMutation(input CreateTodoInput) (*CreateTodoMutationPayload, error) {
+	requestBody, err := json.Marshal(request{
+		Query: CreateTodoMutation,
+		Variables: map[string]interface{}{
+			"input": input,
+		},
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))  
+	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))
 
 	if err != nil {
 		return nil, err
-	}   
+	}
 
 	defer resp.Body.Close()
 
@@ -134,30 +130,27 @@ var TodosQuery = `query TodosQuery {
 }
 `
 
-
-
 type TodosQueryPayloadTodosUser struct {
-	Id string `json:"id"`
+	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 type TodosQueryPayloadTodos struct {
-	Id string `json:"id"`
-	Text string `json:"text"`
-	Done bool `json:"done"`
+	Id   string                     `json:"id"`
+	Text string                     `json:"text"`
+	Done bool                       `json:"done"`
 	User TodosQueryPayloadTodosUser `json:"user"`
 }
 type TodosQueryPayload struct {
 	Todos []TodosQueryPayloadTodos `json:"todos"`
 }
 
-
 type responseTodosQuery struct {
-	Data *TodosQueryPayload `json:"data"`
-	Errors []gqlerror.Error `json:errors`
+	Data   *TodosQueryPayload `json:"data"`
+	Errors []gqlerror.Error   `json:errors`
 }
 
-func (c *Client) TodosQuery() (*TodosQueryPayload, error) {  
-   	requestBody, err := json.Marshal(request{
+func (c *Client) TodosQuery() (*TodosQueryPayload, error) {
+	requestBody, err := json.Marshal(request{
 		Query: TodosQuery,
 	})
 
@@ -165,11 +158,11 @@ func (c *Client) TodosQuery() (*TodosQueryPayload, error) {
 		return nil, err
 	}
 
-	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))  
+	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))
 
 	if err != nil {
 		return nil, err
-	}   
+	}
 
 	defer resp.Body.Close()
 
@@ -210,47 +203,42 @@ var TodosQueryWithVariables = `query TodosQueryWithVariables ($userId: ID!) {
 }
 `
 
-type TodosQueryWithVariablesInput struct {
-	UserId string `json:"userId"`
-}
-
-
 type TodosQueryWithVariablesPayloadTodosUser struct {
-	Id string `json:"id"`
+	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 type TodosQueryWithVariablesPayloadTodos struct {
-	Id string `json:"id"`
-	Text string `json:"text"`
-	Done bool `json:"done"`
+	Id   string                                  `json:"id"`
+	Text string                                  `json:"text"`
+	Done bool                                    `json:"done"`
 	User TodosQueryWithVariablesPayloadTodosUser `json:"user"`
 }
 type TodosQueryWithVariablesPayload struct {
 	Todos []TodosQueryWithVariablesPayloadTodos `json:"todos"`
 }
 
-
 type responseTodosQueryWithVariables struct {
-	Data *TodosQueryWithVariablesPayload `json:"data"`
-	Errors []gqlerror.Error `json:errors`
+	Data   *TodosQueryWithVariablesPayload `json:"data"`
+	Errors []gqlerror.Error                `json:errors`
 }
 
-func (c *Client) TodosQueryWithVariables(input TodosQueryWithVariablesInput) (*TodosQueryWithVariablesPayload, error) {  
-   	requestBody, err := json.Marshal(request{
-		Query: TodosQueryWithVariables, 
-		Variables: input,
-    	
+func (c *Client) TodosQueryWithVariables(userId string) (*TodosQueryWithVariablesPayload, error) {
+	requestBody, err := json.Marshal(request{
+		Query: TodosQueryWithVariables,
+		Variables: map[string]interface{}{
+			"userId": userId,
+		},
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))  
+	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))
 
 	if err != nil {
 		return nil, err
-	}   
+	}
 
 	defer resp.Body.Close()
 
@@ -277,4 +265,3 @@ func (c *Client) TodosQueryWithVariables(input TodosQueryWithVariablesInput) (*T
 
 	return payload.Data, nil
 }
-
