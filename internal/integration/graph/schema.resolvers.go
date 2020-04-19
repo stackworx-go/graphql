@@ -14,7 +14,10 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 	return r.Resolver.CreateTodo.Data, r.Resolver.CreateTodo.Error
 }
 
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
+func (r *queryResolver) Todos(ctx context.Context, userID *string) ([]*model.Todo, error) {
+	r.Resolver.Todos.Args = TodosArgs{
+		UserID: userID,
+	}
 	return r.Resolver.Todos.Data, r.Resolver.Todos.Error
 }
 

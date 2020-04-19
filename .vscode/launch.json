@@ -10,7 +10,7 @@
       "request": "launch",
       "mode": "test",
       "program": "${fileDirname}",
-      "args": ["-test.run", "TestClient"]
+      "args": ["-test.run", "TestTodosQuery"]
     },
     {
       "name": "Launch",
