@@ -92,11 +92,15 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 
 	defer f.Close()
 
-	clientTemplate.Execute(f, struct {
+	err = clientTemplate.Execute(f, struct {
 		PackageName string
 	}{
 		PackageName: packageName,
 	})
+
+	if err != nil {
+		return fmt.Errorf("failed execute client template: %w", err)
+	}
 
 	for _, q := range generatedQueries {
 		type tmpl struct {
@@ -118,8 +122,13 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 			t.HasInput = true
 		}
 
-		requestTemplate.Execute(f, t)
-		f.WriteString("\n")
+		err = requestTemplate.Execute(f, t)
+
+		if err != nil {
+			return fmt.Errorf("failed execute request template: %w", err)
+		}
+
+		_, _ = f.WriteString("\n")
 	}
 
 	return nil

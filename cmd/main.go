@@ -8,10 +8,6 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-type Config struct {
-	QueryFilenames string
-}
-
 func main() {
 	var queries string
 	var schemaFile string

@@ -18,24 +18,24 @@ type Query struct {
 	Payload   *PayloadStruct
 }
 
-type StructType string
+type structType string
 
 const (
-	Input    StructType = "Input"
-	Payload             = "Payload"
-	Fragment            = "Fragment"
+	inputStruct    structType = "Input"
+	payloadStruct  structType = "Payload"
+	fragmentStruct structType = "Fragment"
 )
 
 // Struct Struct export
 type Struct struct {
 	key    string
 	fields []Field
-	typ    StructType
+	typ    structType
 }
 
 // Name Name export
 func (s Struct) Name() string {
-	if s.typ == Input || s.typ == Payload {
+	if s.typ == inputStruct || s.typ == payloadStruct {
 		return fmt.Sprintf("%s%s", s.key, s.typ)
 	}
 
@@ -73,7 +73,7 @@ func GenerateStruct(query *ast.QueryDocument) ([]Query, error) {
 		if len(operation.VariableDefinitions) > 0 {
 			q.Input = &Struct{
 				key: operation.Name,
-				typ: Input,
+				typ: inputStruct,
 			}
 			q.processArguments(operation.VariableDefinitions)
 		}

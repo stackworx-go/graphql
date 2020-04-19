@@ -8,10 +8,10 @@ import (
 )
 
 func (p *PayloadStruct) generatePayload(operation *ast.OperationDefinition) {
-	p.processSelectionSet(operation.Name, Payload, operation.SelectionSet)
+	p.processSelectionSet(operation.Name, payloadStruct, operation.SelectionSet)
 }
 
-func (p *PayloadStruct) processSelectionSet(key string, structType StructType, selectionSet ast.SelectionSet) {
+func (p *PayloadStruct) processSelectionSet(key string, structType structType, selectionSet ast.SelectionSet) {
 	s := Struct{
 		key: key,
 		typ: structType,
@@ -50,7 +50,7 @@ func (p *PayloadStruct) processField(parent Struct, selection ast.Selection) Fie
 		// Nested
 		if len(field.SelectionSet) > 0 {
 			f.typ = fmt.Sprintf("%s%s", parent.Name(), strings.Title(field.Name))
-			p.processSelectionSet(f.typ, Fragment, field.SelectionSet)
+			p.processSelectionSet(f.typ, fragmentStruct, field.SelectionSet)
 		} else {
 			f.typ = fieldType.NamedType
 		}
