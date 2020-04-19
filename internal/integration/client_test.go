@@ -39,6 +39,15 @@ func TestClient(t *testing.T) {
 	// then
 	assert.NoError(t, err)
 	assert.Equal(t, data, &TodosQueryPayload{
-		Todos: nil,
+		Todos: []TodosQueryPayloadTodos{
+			{
+				Id:   "1",
+				Text: "Buy Groceries",
+				User: TodosQueryPayloadTodosUser{
+					Id:   "1",
+					Name: "John",
+				},
+			},
+		},
 	})
 }

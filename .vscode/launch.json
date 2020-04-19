@@ -25,7 +25,11 @@
         "--queries",
         "internal/integration/**/*.graphql",
         "--schema",
-        "internal/integration/graph/schema.graphqls"
+        "internal/integration/graph/schema.graphqls",
+        "--destination",
+        "./internal/integration/client.go",
+        "--packageName",
+        "integration"
       ]
     }
   ]

@@ -5,6 +5,7 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/stackworx-go/gqlgen-relay/internal/generation"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -74,10 +75,10 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 		}
 	}
 
-	var generatedQueries []Query
+	var generatedQueries []generation.Query
 
 	for _, query := range queries {
-		newQueries, err := generateStruct(query)
+		newQueries, err := generation.GenerateStruct(query)
 		if err != nil {
 			return err
 		}
@@ -107,13 +108,13 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 		}
 
 		t := tmpl{
-			Name:    q.name,
-			Query:   q.query,
-			Payload: q.payload.builder.String(),
+			Name:    q.Name,
+			Query:   q.Query,
+			Payload: q.Payload.Print(),
 		}
 
-		if q.input != nil {
-			t.Input = q.input.builder.String()
+		if q.Input != nil {
+			t.Input = q.Input.Print()
 			t.HasInput = true
 		}
 

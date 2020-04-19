@@ -46,17 +46,20 @@ var TodosQuery = `query TodosQuery {
 
 
 
-type TodosQueryPayload struct {
-  Todos []struct {
-    Id string `json:"id"`
-    Text string `json:"text"`
-    Done bool `json:"done"`
-    User struct {
-      Id string `json:"id"`
-      Name string `json:"name"`
-    }
-  }
+type TodosQueryPayloadTodosUser struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
 }
+type TodosQueryPayloadTodos struct {
+	Id string `json:"id"`
+	Text string `json:"text"`
+	Done bool `json:"done"`
+	User TodosQueryPayloadTodosUser `json:"user"`
+}
+type TodosQueryPayload struct {
+	Todos []TodosQueryPayloadTodos `json:"todos"`
+}
+
 
 type responseTodosQuery struct {
 	Data *TodosQueryPayload `json:"data"`
@@ -117,23 +120,24 @@ var TodosQueryWithVariables = `query TodosQueryWithVariables ($userId: ID!) {
 }
 `
 
-
 type TodosQueryWithVariablesInput struct {
-  UserId string `json:"userId"`
+	UserId  string `json:"userId"`
 }
 
-
+type TodosQueryWithVariablesPayloadTodosUser struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+}
+type TodosQueryWithVariablesPayloadTodos struct {
+	Id string `json:"id"`
+	Text string `json:"text"`
+	Done bool `json:"done"`
+	User TodosQueryWithVariablesPayloadTodosUser `json:"user"`
+}
 type TodosQueryWithVariablesPayload struct {
-  Todos []struct {
-    Id string `json:"id"`
-    Text string `json:"text"`
-    Done bool `json:"done"`
-    User struct {
-      Id string `json:"id"`
-      Name string `json:"name"`
-    }
-  }
+	Todos []TodosQueryWithVariablesPayloadTodos `json:"todos"`
 }
+
 
 type responseTodosQueryWithVariables struct {
 	Data *TodosQueryWithVariablesPayload `json:"data"`
