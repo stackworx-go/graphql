@@ -17,6 +17,8 @@ jobs:
       VERBOSE: 1
       GOFLAGS: -mod=readonly
       GOPROXY: https://proxy.golang.org
+      GOARCH: amd64
+      CGO_ENABLED: 0
 
     steps:
       - name: Set up Go
