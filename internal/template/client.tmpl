@@ -23,6 +23,10 @@ type request struct {
 	Extensions    map[string]interface{} `json:"extensions"`
 }
 
+type typename struct {
+	Typename string `json:"__typename"`
+}
+
 type GraphqlError struct {
 	Errors []gqlerror.Error
 }

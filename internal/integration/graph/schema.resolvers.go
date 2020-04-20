@@ -22,6 +22,11 @@ func (r *queryResolver) Todos(ctx context.Context, userID *string) ([]*model.Tod
 	return r.Resolver.Todos.Data, r.Resolver.Todos.Error
 }
 
+func (r *queryResolver) Node(ctx context.Context, id string) (model.Node, error) {
+	r.Resolver.Node.Args = id
+	return r.Resolver.Node.Data, r.Resolver.Node.Error
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

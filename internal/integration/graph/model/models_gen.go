@@ -2,6 +2,10 @@
 
 package model
 
+type Node interface {
+	IsNode()
+}
+
 type CreateTodoInput struct {
 	Text   string `json:"text"`
 	UserID string `json:"userId"`
@@ -18,7 +22,11 @@ type Todo struct {
 	User *User  `json:"user"`
 }
 
+func (Todo) IsNode() {}
+
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
+
+func (User) IsNode() {}

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -52,6 +53,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		Node  func(childComplexity int, id string) int
 		Todos func(childComplexity int, userID *string) int
 	}
 
@@ -73,6 +75,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Todos(ctx context.Context, userID *string) ([]*model.Todo, error)
+	Node(ctx context.Context, id string) (model.Node, error)
 }
 
 type executableSchema struct {
@@ -108,6 +111,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateTodo(childComplexity, args["input"].(model.CreateTodoInput)), true
+
+	case "Query.node":
+		if e.complexity.Query.Node == nil {
+			break
+		}
+
+		args, err := ec.field_Query_node_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Node(childComplexity, args["id"].(string)), true
 
 	case "Query.todos":
 		if e.complexity.Query.Todos == nil {
@@ -231,20 +246,25 @@ var sources = []*ast.Source{
 #
 # https://gqlgen.com/getting-started/
 
-type Todo {
+interface Node {
+  id: ID!
+}
+
+type Todo implements Node {
   id: ID!
   text: String!
   done: Boolean!
   user: User!
 }
 
-type User {
+type User implements Node {
   id: ID!
   name: String!
 }
 
 type Query {
   todos(userId: ID): [Todo!]!
+  node(id: ID!): Node
 }
 
 input CreateTodoInput {
@@ -292,6 +312,20 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_node_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -459,6 +493,44 @@ func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.Coll
 	res := resTmp.([]*model.Todo)
 	fc.Result = res
 	return ec.marshalNTodo2ᚕᚖgithubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_node_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Node(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(model.Node)
+	fc.Result = res
+	return ec.marshalONode2githubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐNode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1817,6 +1889,29 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj model.Node) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case model.Todo:
+		return ec._Todo(ctx, sel, &obj)
+	case *model.Todo:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Todo(ctx, sel, obj)
+	case model.User:
+		return ec._User(ctx, sel, &obj)
+	case *model.User:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._User(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
@@ -1908,6 +2003,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "node":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_node(ctx, field)
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -1923,7 +2029,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
-var todoImplementors = []string{"Todo"}
+var todoImplementors = []string{"Todo", "Node"}
 
 func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj *model.Todo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, todoImplementors)
@@ -1965,7 +2071,7 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
-var userImplementors = []string{"User"}
+var userImplementors = []string{"User", "Node"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *model.User) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
@@ -2637,6 +2743,13 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 		return graphql.Null
 	}
 	return ec.marshalOID2string(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalONode2githubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐNode(ctx context.Context, sel ast.SelectionSet, v model.Node) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Node(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

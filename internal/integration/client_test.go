@@ -143,3 +143,67 @@ func TestCreateTodoMutation(t *testing.T) {
 		},
 	})
 }
+
+func TestNodeUserQuery(t *testing.T) {
+	// given
+	resolvers := &graph.Resolver{}
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))
+	resolvers.Node.Data = &model.User{
+		ID:   "1",
+		Name: "John",
+	}
+
+	ts := httptest.NewServer(srv)
+	defer ts.Close()
+
+	client := Client{
+		Url: ts.URL,
+	}
+
+	// when
+	data, err := client.NodeQuery("1")
+
+	// then
+	assert.NoError(t, err)
+	// assert.Equal(t, resolvers.Node.Args, "1")
+	assert.Equal(t, data, &NodeQueryPayload{
+		Node: &NodeQueryPayloadNode{
+			// Id: "1",
+			UserFragment: &NodeQueryPayloadNodeUserFragment{
+				Name: "John",
+			},
+		},
+	})
+}
+
+func TestNodeTodoQuery(t *testing.T) {
+	// given
+	resolvers := &graph.Resolver{}
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))
+	resolvers.Node.Data = &model.Todo{
+		ID:   "1",
+		Text: "TODO",
+	}
+
+	ts := httptest.NewServer(srv)
+	defer ts.Close()
+
+	client := Client{
+		Url: ts.URL,
+	}
+
+	// when
+	data, err := client.NodeQuery("1")
+
+	// then
+	assert.NoError(t, err)
+	// assert.Equal(t, resolvers.Node.Args, "1")
+	assert.Equal(t, data, &NodeQueryPayload{
+		Node: &NodeQueryPayloadNode{
+			// Id: "1",
+			TodoFragment: &NodeQueryPayloadNodeTodoFragment{
+				Text: "TODO",
+			},
+		},
+	})
+}

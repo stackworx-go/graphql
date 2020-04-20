@@ -1,0 +1,11 @@
+query NodeQuery($nodeId: ID!) {
+  node(id: $nodeId) {
+    id
+    ... on User {
+      name
+    }
+    ... on Todo {
+      text
+    }
+  }
+}

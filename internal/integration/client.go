@@ -23,6 +23,10 @@ type request struct {
 	Extensions map[string]interface{} `json:"extensions"`
 }
 
+type typename struct {
+	Typename string `json:"__typename"`
+}
+
 type GraphqlError struct {
 	Errors []gqlerror.Error
 }
@@ -55,15 +59,18 @@ type CreateTodoMutationPayloadCreateTodoTodoUser struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 }
+
 type CreateTodoMutationPayloadCreateTodoTodo struct {
 	Id   string                                      `json:"id"`
 	Text string                                      `json:"text"`
 	Done bool                                        `json:"done"`
 	User CreateTodoMutationPayloadCreateTodoTodoUser `json:"user"`
 }
+
 type CreateTodoMutationPayloadCreateTodo struct {
 	Todo CreateTodoMutationPayloadCreateTodoTodo `json:"todo"`
 }
+
 type CreateTodoMutationPayload struct {
 	CreateTodo CreateTodoMutationPayloadCreateTodo `json:"createTodo"`
 }
@@ -117,6 +124,123 @@ func (c *Client) CreateTodoMutation(input CreateTodoInput) (*CreateTodoMutationP
 	return payload.Data, nil
 }
 
+var NodeQuery = `query NodeQuery ($nodeId: ID!) {
+	node(id: $nodeId) {
+		id
+		... on User {
+			name
+			__typename
+		}
+		... on Todo {
+			text
+			__typename
+		}
+	}
+}
+`
+
+type NodeQueryPayloadNodeUserFragment struct {
+	Name       string `json:"name"`
+	__typename string `json:"__typename"`
+}
+
+type NodeQueryPayloadNodeTodoFragment struct {
+	Text       string `json:"text"`
+	__typename string `json:"__typename"`
+}
+
+type NodeQueryPayloadNode struct {
+	Id           string `json:"id"`
+	UserFragment *NodeQueryPayloadNodeUserFragment
+	TodoFragment *NodeQueryPayloadNodeTodoFragment
+}
+
+func (f *NodeQueryPayloadNode) UnmarshalJSON(data []byte) error {
+	var typename typename
+	err := json.Unmarshal(data, &typename)
+
+	if err != nil {
+		return err
+	}
+
+	// Extract local Fields if any
+	// Causes circular loop
+	// Will need second struct
+	// err = json.Unmarshal(data, &f)
+
+	// f.__typename = typename.Typename
+
+	switch typename.Typename {
+	case "User":
+		err = json.Unmarshal(data, &f.UserFragment)
+		if err != nil {
+			return err
+		}
+	case "Todo":
+		err = json.Unmarshal(data, &f.TodoFragment)
+		if err != nil {
+			return err
+		}
+	default:
+		panic(fmt.Errorf("unexpected object type: %s", typename.Typename))
+	}
+
+	return nil
+}
+
+type NodeQueryPayload struct {
+	Node *NodeQueryPayloadNode `json:"node,omitempty"`
+}
+
+type responseNodeQuery struct {
+	Data   *NodeQueryPayload `json:"data"`
+	Errors []gqlerror.Error  `json:errors`
+}
+
+func (c *Client) NodeQuery(nodeId string) (*NodeQueryPayload, error) {
+	requestBody, err := json.Marshal(request{
+		Query: NodeQuery,
+		Variables: map[string]interface{}{
+			"nodeId": nodeId,
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, body)
+	}
+
+	var payload responseNodeQuery
+	err = json.Unmarshal(body, &payload)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(payload.Errors) > 0 {
+		return nil, &GraphqlError{Errors: payload.Errors}
+	}
+
+	return payload.Data, nil
+}
+
 var TodosQuery = `query TodosQuery {
 	todos {
 		id
@@ -134,12 +258,14 @@ type TodosQueryPayloadTodosUser struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 }
+
 type TodosQueryPayloadTodos struct {
 	Id   string                     `json:"id"`
 	Text string                     `json:"text"`
 	Done bool                       `json:"done"`
 	User TodosQueryPayloadTodosUser `json:"user"`
 }
+
 type TodosQueryPayload struct {
 	Todos []TodosQueryPayloadTodos `json:"todos"`
 }
@@ -207,12 +333,14 @@ type TodosQueryWithVariablesPayloadTodosUser struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 }
+
 type TodosQueryWithVariablesPayloadTodos struct {
 	Id   string                                  `json:"id"`
 	Text string                                  `json:"text"`
 	Done bool                                    `json:"done"`
 	User TodosQueryWithVariablesPayloadTodosUser `json:"user"`
 }
+
 type TodosQueryWithVariablesPayload struct {
 	Todos []TodosQueryWithVariablesPayloadTodos `json:"todos"`
 }

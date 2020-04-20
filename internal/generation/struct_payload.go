@@ -17,16 +17,17 @@ func (p *PayloadStruct) processSelectionSet(key string, structType structType, s
 		typ: structType,
 	}
 	for _, selection := range selectionSet {
-		s.fields = append(s.fields, p.processField(s, selection))
+		s.fields = append(s.fields, p.processField(&s, selection))
 	}
 
 	p.structs = append(p.structs, s)
 }
 
-func (p *PayloadStruct) processField(parent Struct, selection ast.Selection) Field {
-	field, ok := selection.(*ast.Field)
+func (p *PayloadStruct) processField(parent *Struct, selection ast.Selection) Field {
+	switch s := selection.(type) {
+	case *ast.Field:
+		field := s
 
-	if ok {
 		name := field.Name
 
 		if field.Alias != "" {
@@ -44,8 +45,28 @@ func (p *PayloadStruct) processField(parent Struct, selection ast.Selection) Fie
 		}
 
 		return *f
+	case *ast.InlineFragment:
+		inlineFragment := s
+
+		key := fmt.Sprintf("%sFragment", inlineFragment.TypeCondition)
+
+		f := Fragment{
+			name:          fmt.Sprintf("%s%s", parent.Name(), inlineFragment.TypeCondition),
+			reference:     key,
+			typeCondition: inlineFragment.TypeCondition,
+		}
+
+		p.processSelectionSet(f.Name(), fragmentStruct, inlineFragment.SelectionSet)
+
+		parent.fragments = append(parent.fragments, f)
+
+		return Field{
+			name: key,
+			typ:  "*" + f.Name(),
+		}
+	default:
+		// TODO: remove after more testing
+		panic(fmt.Errorf("unexpected Selection Type: %v", selection))
 	}
 
-	// TODO: remove after more testing
-	panic(fmt.Errorf("unexpected Selection Type: %v", selection))
 }
