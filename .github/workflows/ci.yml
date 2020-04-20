@@ -12,39 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: ['1.13']
+        go: ["1.13", "1.14"]
     env:
       VERBOSE: 1
       GOFLAGS: -mod=readonly
       GOPROXY: https://proxy.golang.org
-
-    services:
-      postgres:
-        image: postgres:10
-        env:
-          POSTGRES_USER: db_errors
-          POSTGRES_PASSWORD: db_errors_password
-          POSTGRES_DB: db_errors_test
-        ports:
-          - 5432
-        # needed because the postgres container does not provide a healthcheck
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-      mysql:
-        image: mysql:5
-        env:
-          MYSQL_DATABASE: db_errors_test
-          MYSQL_USER: db_errors
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
-        ports:
-          - 3306
-      mssql:
-        image: microsoft/mssql-server-linux:2017-CU12
-        env:
-          ACCEPT_EULA: Y
-          SA_PASSWORD: eioC9vvCZzQSy4S9g37i
-        ports:
-          - 1433
 
     steps:
       - name: Set up Go
@@ -57,7 +29,7 @@ jobs:
 
       - name: Download Deps
         run: go mod download
-      
+
       - name: Generate
         run: |
           go generate ./...
@@ -65,7 +37,7 @@ jobs:
           git diff --exit-code
 
       - name: Lint
-        run: make lint
+        uses: actions-contrib/golangci-lint@v1
 
       - name: Build
         run: make build
