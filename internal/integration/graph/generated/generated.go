@@ -13,7 +13,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/stackworx-go/gqlgen-relay/internal/integration/graph/model"
+	"github.com/stackworx-go/graphql-client/internal/integration/graph/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -292,7 +292,7 @@ func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, 
 	args := map[string]interface{}{}
 	var arg0 model.CreateTodoInput
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNCreateTodoInput2githubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoInput(ctx, tmp)
+		arg0, err = ec.unmarshalNCreateTodoInput2githubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -410,7 +410,7 @@ func (ec *executionContext) _CreateTodoPayload_todo(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Todo)
 	fc.Result = res
-	return ec.marshalNTodo2ᚖgithubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodo(ctx, field.Selections, res)
+	return ec.marshalNTodo2ᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -451,7 +451,7 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 	}
 	res := resTmp.(*model.CreateTodoPayload)
 	fc.Result = res
-	return ec.marshalNCreateTodoPayload2ᚖgithubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoPayload(ctx, field.Selections, res)
+	return ec.marshalNCreateTodoPayload2ᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoPayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -492,7 +492,7 @@ func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]*model.Todo)
 	fc.Result = res
-	return ec.marshalNTodo2ᚕᚖgithubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodoᚄ(ctx, field.Selections, res)
+	return ec.marshalNTodo2ᚕᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodoᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -530,7 +530,7 @@ func (ec *executionContext) _Query_node(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(model.Node)
 	fc.Result = res
-	return ec.marshalONode2githubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐNode(ctx, field.Selections, res)
+	return ec.marshalONode2githubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐNode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -735,7 +735,7 @@ func (ec *executionContext) _Todo_user(ctx context.Context, field graphql.Collec
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -2362,15 +2362,15 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNCreateTodoInput2githubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoInput(ctx context.Context, v interface{}) (model.CreateTodoInput, error) {
+func (ec *executionContext) unmarshalNCreateTodoInput2githubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoInput(ctx context.Context, v interface{}) (model.CreateTodoInput, error) {
 	return ec.unmarshalInputCreateTodoInput(ctx, v)
 }
 
-func (ec *executionContext) marshalNCreateTodoPayload2githubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoPayload(ctx context.Context, sel ast.SelectionSet, v model.CreateTodoPayload) graphql.Marshaler {
+func (ec *executionContext) marshalNCreateTodoPayload2githubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoPayload(ctx context.Context, sel ast.SelectionSet, v model.CreateTodoPayload) graphql.Marshaler {
 	return ec._CreateTodoPayload(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCreateTodoPayload2ᚖgithubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoPayload(ctx context.Context, sel ast.SelectionSet, v *model.CreateTodoPayload) graphql.Marshaler {
+func (ec *executionContext) marshalNCreateTodoPayload2ᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐCreateTodoPayload(ctx context.Context, sel ast.SelectionSet, v *model.CreateTodoPayload) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -2408,11 +2408,11 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNTodo2githubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodo(ctx context.Context, sel ast.SelectionSet, v model.Todo) graphql.Marshaler {
+func (ec *executionContext) marshalNTodo2githubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodo(ctx context.Context, sel ast.SelectionSet, v model.Todo) graphql.Marshaler {
 	return ec._Todo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNTodo2ᚕᚖgithubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Todo) graphql.Marshaler {
+func (ec *executionContext) marshalNTodo2ᚕᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Todo) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -2436,7 +2436,7 @@ func (ec *executionContext) marshalNTodo2ᚕᚖgithubᚗcomᚋstackworxᚑgoᚋg
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTodo2ᚖgithubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodo(ctx, sel, v[i])
+			ret[i] = ec.marshalNTodo2ᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodo(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -2449,7 +2449,7 @@ func (ec *executionContext) marshalNTodo2ᚕᚖgithubᚗcomᚋstackworxᚑgoᚋg
 	return ret
 }
 
-func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodo(ctx context.Context, sel ast.SelectionSet, v *model.Todo) graphql.Marshaler {
+func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐTodo(ctx context.Context, sel ast.SelectionSet, v *model.Todo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -2459,11 +2459,11 @@ func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋstackworxᚑgoᚋgqlg
 	return ec._Todo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUser2githubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2githubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -2745,7 +2745,7 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 	return ec.marshalOID2string(ctx, sel, *v)
 }
 
-func (ec *executionContext) marshalONode2githubᚗcomᚋstackworxᚑgoᚋgqlgenᚑrelayᚋinternalᚋintegrationᚋgraphᚋmodelᚐNode(ctx context.Context, sel ast.SelectionSet, v model.Node) graphql.Marshaler {
+func (ec *executionContext) marshalONode2githubᚗcomᚋstackworxᚑgoᚋgraphqlᚑclientᚋinternalᚋintegrationᚋgraphᚋmodelᚐNode(ctx context.Context, sel ast.SelectionSet, v model.Node) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

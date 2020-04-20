@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/stackworx-go/gqlgen-relay/internal"
+	"github.com/stackworx-go/graphql-client/internal"
 	"github.com/urfave/cli/v2"
 )
 

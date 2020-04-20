@@ -1,6 +1,6 @@
 package graph
 
-import "github.com/stackworx-go/gqlgen-relay/internal/integration/graph/model"
+import "github.com/stackworx-go/graphql-client/internal/integration/graph/model"
 
 // TodosArgs TodosArgs export
 type TodosArgs struct {

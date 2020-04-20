@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/stackworx-go/gqlgen-relay/internal/integration/graph"
-	"github.com/stackworx-go/gqlgen-relay/internal/integration/graph/generated"
-	"github.com/stackworx-go/gqlgen-relay/internal/integration/graph/model"
+	"github.com/stackworx-go/graphql-client/internal/integration/graph"
+	"github.com/stackworx-go/graphql-client/internal/integration/graph/generated"
+	"github.com/stackworx-go/graphql-client/internal/integration/graph/model"
 
 	"github.com/stretchr/testify/assert"
 )

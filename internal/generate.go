@@ -5,7 +5,7 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/stackworx-go/gqlgen-relay/internal/generation"
+	"github.com/stackworx-go/graphql-client/internal/generation"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 

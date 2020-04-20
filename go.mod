@@ -1,4 +1,4 @@
-module github.com/stackworx-go/gqlgen-relay
+module github.com/stackworx-go/graphql-client
 
 go 1.14
 
