@@ -29,6 +29,17 @@ func loadRequestTemplate() (*template.Template, error) {
 
 // Generate Generate export
 func Generate(queriesGlob, schemaFile, destination, packageName string) error {
+	schema, err := loadSchema(schemaFile)
+
+	if err != nil {
+		return fmt.Errorf("failed to load schema: %w", err)
+	}
+
+	return GenerateWithSchema(queriesGlob, destination, packageName, schema)
+}
+
+// GenerateWithSchema GenerateWithSchema export
+func GenerateWithSchema(queriesGlob, destination, packageName string, schema *ast.Schema) error {
 	clientTemplate, err := loadClientTemplate()
 
 	if err != nil {
@@ -45,12 +56,6 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 
 	if err != nil {
 		return fmt.Errorf("failed to find query files: %s", err)
-	}
-
-	schema, err := loadSchema(schemaFile)
-
-	if err != nil {
-		return fmt.Errorf("failed to load schema: %w", err)
 	}
 
 	var queries []*ast.QueryDocument
