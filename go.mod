@@ -1,4 +1,4 @@
-module github.com/stackworx-go/graphql-client
+module github.com/stackworx-go/graphql
 
 go 1.14
 
