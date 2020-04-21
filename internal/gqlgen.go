@@ -10,7 +10,8 @@ import (
 	"github.com/vektah/gqlparser/v2/validator"
 )
 
-func loadSchema(schemaFile string) (*ast.Schema, error) {
+// LoadSchema LoadSchema export
+func LoadSchema(schemaFile string) (*ast.Schema, error) {
 	dat, err := ioutil.ReadFile(schemaFile)
 
 	if err != nil {
@@ -29,7 +30,7 @@ func loadSchema(schemaFile string) (*ast.Schema, error) {
 	return schema, nil
 }
 
-func loadQuery(schema *ast.Schema, queryFile string) (*ast.QueryDocument, error) {
+func LoadQuery(schema *ast.Schema, queryFile string) (*ast.QueryDocument, error) {
 	queryData, err := ioutil.ReadFile(queryFile)
 
 	if err != nil {
