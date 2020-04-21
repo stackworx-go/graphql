@@ -1,7 +1,9 @@
 package internal
 
 import (
+	"bytes"
 	"fmt"
+	"go/format"
 	"os"
 	"path/filepath"
 	"strings"
@@ -100,14 +102,9 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 		return fmt.Errorf("Failed to generate input structs: %w", err)
 	}
 
-	f, err := os.OpenFile(destination, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0777)
-	if err != nil {
-		return fmt.Errorf("failed to open destination file: %s for writting: %w", destination, err)
-	}
+	var buf bytes.Buffer
 
-	defer f.Close()
-
-	err = clientTemplate.Execute(f, struct {
+	err = clientTemplate.Execute(&buf, struct {
 		PackageName  string
 		InputStructs string
 	}{
@@ -139,13 +136,29 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 			t.HasInput = true
 		}
 
-		err = requestTemplate.Execute(f, t)
+		err = requestTemplate.Execute(&buf, t)
 
 		if err != nil {
 			return fmt.Errorf("failed execute request template: %w", err)
 		}
+	}
 
-		_, _ = f.WriteString("\n")
+	data, err := format.Source(buf.Bytes())
+
+	if err != nil {
+		return fmt.Errorf("failed to format code: %w", err)
+	}
+
+	f, err := os.OpenFile(destination, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0777)
+	if err != nil {
+		return fmt.Errorf("failed to open destination file: %s for writting: %w", destination, err)
+	}
+
+	defer f.Close()
+	_, err = f.Write(data)
+
+	if err != nil {
+		return fmt.Errorf("failed to write client file: %w", err)
 	}
 
 	return nil

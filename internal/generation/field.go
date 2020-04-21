@@ -71,6 +71,11 @@ func newField(name string, typ *ast.Type) *Field {
 		f.list = true
 	}
 
-	f.jsonTag(f.name, !typ.NonNull)
+	// TODO: find better way to do this
+	// This is just to avoid lint warnings
+	if f.name != "__typename" {
+		f.jsonTag(f.name, !typ.NonNull)
+	}
+
 	return &f
 }

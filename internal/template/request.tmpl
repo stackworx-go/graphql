@@ -4,12 +4,12 @@ var {{ .Name }} = `{{ .Query }}`
 
 type response{{ .Name }} struct {
 	Data *{{ .Name }}Payload `json:"data"`
-	Errors []gqlerror.Error `json:errors`
+	Errors []gqlerror.Error `json:"errors"`
 }
 
 func (c *Client) {{ .Name }}(
-    {{- if .HasInput}}{{range $index, $element := .Arguments}}{{if $index}},{{end}}{{ .Name }} {{ .Type }}{{end}}{{ end -}}
-) (*{{ .Name }}Payload, error) {  
+    {{- if .HasInput}}{{range $index, $element := .Arguments}}{{ .Name }} {{ .Type }},{{end}}{{ end -}}
+	opts *RequestOpts) (*{{ .Name }}Payload, error) {  
    	requestBody, err := json.Marshal(request{
 		Query: {{ .Name }},
 		{{- if .HasInput }} 
@@ -25,11 +25,23 @@ func (c *Client) {{ .Name }}(
 		return nil, err
 	}
 
-	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))  
+	req, err := http.NewRequest("POST", c.URL, bytes.NewReader(requestBody))
 
 	if err != nil {
 		return nil, err
 	}   
+
+	if opts != nil {
+		req.Header = opts.Header
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.Do(req)
+
+	if err != nil {
+		return nil, err
+	} 
 
 	defer resp.Body.Close()
 

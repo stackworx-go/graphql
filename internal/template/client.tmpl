@@ -2,9 +2,9 @@
 package {{ .PackageName }}
 
 import (
-	"fmt"
-    "bytes"
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -13,7 +13,7 @@ import (
 
 type Client struct {
 	http.Client
-	Url string
+	URL string
 }
 
 type request struct {
@@ -21,6 +21,10 @@ type request struct {
 	// OperationName string                 `json:"operationName"`
 	Variables     interface{} `json:"variables"`
 	Extensions    map[string]interface{} `json:"extensions"`
+}
+
+type RequestOpts struct {
+	Header http.Header
 }
 
 type typename struct {

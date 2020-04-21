@@ -13,7 +13,7 @@ import (
 
 type Client struct {
 	http.Client
-	Url string
+	URL string
 }
 
 type request struct {
@@ -21,6 +21,10 @@ type request struct {
 	// OperationName string                 `json:"operationName"`
 	Variables  interface{}            `json:"variables"`
 	Extensions map[string]interface{} `json:"extensions"`
+}
+
+type RequestOpts struct {
+	Header http.Header
 }
 
 type typename struct {
@@ -77,10 +81,10 @@ type CreateTodoMutationPayload struct {
 
 type responseCreateTodoMutation struct {
 	Data   *CreateTodoMutationPayload `json:"data"`
-	Errors []gqlerror.Error           `json:errors`
+	Errors []gqlerror.Error           `json:"errors"`
 }
 
-func (c *Client) CreateTodoMutation(input CreateTodoInput) (*CreateTodoMutationPayload, error) {
+func (c *Client) CreateTodoMutation(input CreateTodoInput, opts *RequestOpts) (*CreateTodoMutationPayload, error) {
 	requestBody, err := json.Marshal(request{
 		Query: CreateTodoMutation,
 		Variables: map[string]interface{}{
@@ -92,7 +96,19 @@ func (c *Client) CreateTodoMutation(input CreateTodoInput) (*CreateTodoMutationP
 		return nil, err
 	}
 
-	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))
+	req, err := http.NewRequest("POST", c.URL, bytes.NewReader(requestBody))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if opts != nil {
+		req.Header = opts.Header
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.Do(req)
 
 	if err != nil {
 		return nil, err
@@ -141,12 +157,12 @@ var NodeQuery = `query NodeQuery ($nodeId: ID!) {
 
 type NodeQueryPayloadNodeUserFragment struct {
 	Name       string `json:"name"`
-	__typename string `json:"__typename"`
+	__typename string
 }
 
 type NodeQueryPayloadNodeTodoFragment struct {
 	Text       string `json:"text"`
-	__typename string `json:"__typename"`
+	__typename string
 }
 
 type NodeQueryPayloadNode struct {
@@ -194,10 +210,10 @@ type NodeQueryPayload struct {
 
 type responseNodeQuery struct {
 	Data   *NodeQueryPayload `json:"data"`
-	Errors []gqlerror.Error  `json:errors`
+	Errors []gqlerror.Error  `json:"errors"`
 }
 
-func (c *Client) NodeQuery(nodeId string) (*NodeQueryPayload, error) {
+func (c *Client) NodeQuery(nodeId string, opts *RequestOpts) (*NodeQueryPayload, error) {
 	requestBody, err := json.Marshal(request{
 		Query: NodeQuery,
 		Variables: map[string]interface{}{
@@ -209,7 +225,19 @@ func (c *Client) NodeQuery(nodeId string) (*NodeQueryPayload, error) {
 		return nil, err
 	}
 
-	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))
+	req, err := http.NewRequest("POST", c.URL, bytes.NewReader(requestBody))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if opts != nil {
+		req.Header = opts.Header
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.Do(req)
 
 	if err != nil {
 		return nil, err
@@ -272,10 +300,10 @@ type TodosQueryPayload struct {
 
 type responseTodosQuery struct {
 	Data   *TodosQueryPayload `json:"data"`
-	Errors []gqlerror.Error   `json:errors`
+	Errors []gqlerror.Error   `json:"errors"`
 }
 
-func (c *Client) TodosQuery() (*TodosQueryPayload, error) {
+func (c *Client) TodosQuery(opts *RequestOpts) (*TodosQueryPayload, error) {
 	requestBody, err := json.Marshal(request{
 		Query: TodosQuery,
 	})
@@ -284,7 +312,19 @@ func (c *Client) TodosQuery() (*TodosQueryPayload, error) {
 		return nil, err
 	}
 
-	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))
+	req, err := http.NewRequest("POST", c.URL, bytes.NewReader(requestBody))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if opts != nil {
+		req.Header = opts.Header
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.Do(req)
 
 	if err != nil {
 		return nil, err
@@ -347,10 +387,10 @@ type TodosWithVariablesQueryPayload struct {
 
 type responseTodosWithVariablesQuery struct {
 	Data   *TodosWithVariablesQueryPayload `json:"data"`
-	Errors []gqlerror.Error                `json:errors`
+	Errors []gqlerror.Error                `json:"errors"`
 }
 
-func (c *Client) TodosWithVariablesQuery(userId string) (*TodosWithVariablesQueryPayload, error) {
+func (c *Client) TodosWithVariablesQuery(userId string, opts *RequestOpts) (*TodosWithVariablesQueryPayload, error) {
 	requestBody, err := json.Marshal(request{
 		Query: TodosWithVariablesQuery,
 		Variables: map[string]interface{}{
@@ -362,7 +402,19 @@ func (c *Client) TodosWithVariablesQuery(userId string) (*TodosWithVariablesQuer
 		return nil, err
 	}
 
-	resp, err := c.Post(c.Url, "application/json", bytes.NewBuffer(requestBody))
+	req, err := http.NewRequest("POST", c.URL, bytes.NewReader(requestBody))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if opts != nil {
+		req.Header = opts.Header
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.Do(req)
 
 	if err != nil {
 		return nil, err

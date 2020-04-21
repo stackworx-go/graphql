@@ -34,11 +34,11 @@ func TestTodosQuery(t *testing.T) {
 	defer ts.Close()
 
 	client := Client{
-		Url: ts.URL,
+		URL: ts.URL,
 	}
 
 	// when
-	data, err := client.TodosQuery()
+	data, err := client.TodosQuery(nil)
 
 	// then
 	assert.NoError(t, err)
@@ -75,11 +75,11 @@ func TestTodosQueryWithVariables(t *testing.T) {
 	defer ts.Close()
 
 	client := Client{
-		Url: ts.URL,
+		URL: ts.URL,
 	}
 
 	// when
-	data, err := client.TodosWithVariablesQuery("4")
+	data, err := client.TodosWithVariablesQuery("4", nil)
 
 	// then
 	assert.NoError(t, err)
@@ -118,14 +118,14 @@ func TestCreateTodoMutation(t *testing.T) {
 	defer ts.Close()
 
 	client := Client{
-		Url: ts.URL,
+		URL: ts.URL,
 	}
 
 	// when
 	data, err := client.CreateTodoMutation(CreateTodoInput{
 		Text:   "Create TODO",
 		UserId: "4",
-	})
+	}, nil)
 
 	// then
 	assert.NoError(t, err)
@@ -157,11 +157,11 @@ func TestNodeUserQuery(t *testing.T) {
 	defer ts.Close()
 
 	client := Client{
-		Url: ts.URL,
+		URL: ts.URL,
 	}
 
 	// when
-	data, err := client.NodeQuery("1")
+	data, err := client.NodeQuery("1", nil)
 
 	// then
 	assert.NoError(t, err)
@@ -189,11 +189,11 @@ func TestNodeTodoQuery(t *testing.T) {
 	defer ts.Close()
 
 	client := Client{
-		Url: ts.URL,
+		URL: ts.URL,
 	}
 
 	// when
-	data, err := client.NodeQuery("1")
+	data, err := client.NodeQuery("1", nil)
 
 	// then
 	assert.NoError(t, err)
