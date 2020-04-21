@@ -1,6 +1,6 @@
 # Graphql Client
 
-Another graphql-client written in go
+Another graphql written in go
 
 ## Why
 
@@ -10,7 +10,7 @@ This library is inspired by relay and other go code generation libraries like en
 
 Given a graphql schema and graphql queries this project will generate a type safe client
 
-See this [test](https://github.com/stackworx-go/graphql-client/blob/master/internal/integration/client_test.go) for example use
+See this [test](https://github.com/stackworx-go/graphql/blob/master/internal/integration/client_test.go) for example use
 
 ## Example
 
@@ -45,11 +45,11 @@ data, err := client.TodosQuery()
 ## Quickstart
 
 ```
-go get github.com/stackworx-go/graphql-client
+go get github.com/stackworx-go/graphql
 ```
 
 ```
-go run github.com/stackworx-go/graphql-client/generate \
+go run github.com/stackworx-go/graphql/generate \
     --queries  "./**/*.graphql" \
     --schema schema.graphqls \
     --destination "./client.go" \

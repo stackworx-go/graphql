@@ -9,8 +9,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/stackworx-go/graphql-client/internal"
-	"github.com/stackworx-go/graphql-client/internal/generation"
+	"github.com/stackworx-go/graphql/internal"
+	"github.com/stackworx-go/graphql/internal/generation"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 

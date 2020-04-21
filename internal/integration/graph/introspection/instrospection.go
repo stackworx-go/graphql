@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/stackworx-go/graphql-client/internal/integration/graph/generated"
+	"github.com/stackworx-go/graphql/internal/integration/graph/generated"
 	"github.com/vektah/gqlparser/v2/formatter"
 )
 

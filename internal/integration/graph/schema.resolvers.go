@@ -6,8 +6,8 @@ package graph
 import (
 	"context"
 
-	"github.com/stackworx-go/graphql-client/internal/integration/graph/generated"
-	"github.com/stackworx-go/graphql-client/internal/integration/graph/model"
+	"github.com/stackworx-go/graphql/internal/integration/graph/generated"
+	"github.com/stackworx-go/graphql/internal/integration/graph/model"
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.CreateTodoPayload, error) {

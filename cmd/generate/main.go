@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	graphql_client "github.com/stackworx-go/graphql-client"
+	"github.com/stackworx-go/graphql"
 	"github.com/urfave/cli/v2"
 )
 
@@ -47,7 +47,7 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			return graphql_client.Generate(queries, schemaFile, destination, packageName)
+			return graphql.Generate(queries, schemaFile, destination, packageName)
 		},
 	}
 
