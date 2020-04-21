@@ -79,17 +79,17 @@ func TestTodosQueryWithVariables(t *testing.T) {
 	}
 
 	// when
-	data, err := client.TodosQueryWithVariables("4")
+	data, err := client.TodosWithVariablesQuery("4")
 
 	// then
 	assert.NoError(t, err)
 	assert.Equal(t, resolvers.Todos.Args, graph.TodosArgs{UserID: String("4")})
-	assert.Equal(t, data, &TodosQueryWithVariablesPayload{
-		Todos: []TodosQueryWithVariablesPayloadTodos{
+	assert.Equal(t, data, &TodosWithVariablesQueryPayload{
+		Todos: []TodosWithVariablesQueryPayloadTodos{
 			{
 				Id:   "1",
 				Text: "Buy Groceries",
-				User: TodosQueryWithVariablesPayloadTodosUser{
+				User: TodosWithVariablesQueryPayloadTodosUser{
 					Id:   "1",
 					Name: "John",
 				},

@@ -3,6 +3,8 @@ package internal
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/stackworx-go/graphql-client/internal/generation"
@@ -52,7 +54,10 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 	var queries []*ast.QueryDocument
 	operationNames := make(map[string]interface{})
 
-	// TODO: handle no files found
+	if len(files) == 0 {
+		return fmt.Errorf("No queries found. Glob: %s", queriesGlob)
+	}
+
 	for _, file := range files {
 		query, err := loadQuery(schema, file)
 
@@ -60,7 +65,11 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 			return fmt.Errorf("Failed to process query %s: %w", file, err)
 		}
 
-		if err = validateQuery(query); err != nil {
+		if len(query.Operations) > 1 {
+			return fmt.Errorf("Each query should contain a single operation. File: %s", file)
+		}
+
+		if err = validateQuery(file, query); err != nil {
 			return fmt.Errorf("Failed to validate query %s: %w", file, err)
 		}
 
@@ -68,10 +77,10 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 
 		for _, operation := range query.Operations {
 			if _, ok := operationNames[operation.Name]; ok {
-				return fmt.Errorf("Operation %s used twice", operation.Name)
-			} else {
-				operationNames[operation.Name] = nil
+				return fmt.Errorf("Operation Name %s is not unique", operation.Name)
 			}
+
+			operationNames[operation.Name] = nil
 		}
 	}
 
@@ -142,14 +151,37 @@ func Generate(queriesGlob, schemaFile, destination, packageName string) error {
 	return nil
 }
 
-func validateQuery(query *ast.QueryDocument) error {
+func validateQuery(file string, query *ast.QueryDocument) error {
 	if len(query.Fragments) > 0 {
 		return fmt.Errorf("Fragments are not allowed")
 	}
 
-	// TODO: ensure operation names match filename like relay
+	for _, op := range query.Operations {
+		if op.Name == "" {
+			return fmt.Errorf("Anonymous query found in %s", file)
+		}
 
-	// TODO: reject unnamed operations
+		switch op.Operation {
+		case ast.Query:
+			if !strings.HasSuffix(op.Name, "Query") {
+				return fmt.Errorf("Expected Query Operation Name to end in Query, got: %s, file: %s", op.Name, file)
+			}
+		case ast.Mutation:
+			if !strings.HasSuffix(op.Name, "Mutation") {
+				return fmt.Errorf("Expected Query Operation Name to end in Query, got: %s, file: %s", op.Name, file)
+			}
+		case ast.Subscription:
+			return fmt.Errorf("Subscriptions are currently not supported %s in %s", op.Name, file)
+		}
+
+		expectedName := op.Name + ".graphql"
+		_, filename := filepath.Split(file)
+
+		if expectedName != filename {
+			return fmt.Errorf("Expected filename to be %s, got: %s", expectedName, file)
+		}
+
+	}
 
 	return nil
 }

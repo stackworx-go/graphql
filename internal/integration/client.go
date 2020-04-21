@@ -316,7 +316,7 @@ func (c *Client) TodosQuery() (*TodosQueryPayload, error) {
 	return payload.Data, nil
 }
 
-var TodosQueryWithVariables = `query TodosQueryWithVariables ($userId: ID!) {
+var TodosWithVariablesQuery = `query TodosWithVariablesQuery ($userId: ID!) {
 	todos(userId: $userId) {
 		id
 		text
@@ -329,30 +329,30 @@ var TodosQueryWithVariables = `query TodosQueryWithVariables ($userId: ID!) {
 }
 `
 
-type TodosQueryWithVariablesPayloadTodosUser struct {
+type TodosWithVariablesQueryPayloadTodosUser struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 
-type TodosQueryWithVariablesPayloadTodos struct {
+type TodosWithVariablesQueryPayloadTodos struct {
 	Id   string                                  `json:"id"`
 	Text string                                  `json:"text"`
 	Done bool                                    `json:"done"`
-	User TodosQueryWithVariablesPayloadTodosUser `json:"user"`
+	User TodosWithVariablesQueryPayloadTodosUser `json:"user"`
 }
 
-type TodosQueryWithVariablesPayload struct {
-	Todos []TodosQueryWithVariablesPayloadTodos `json:"todos"`
+type TodosWithVariablesQueryPayload struct {
+	Todos []TodosWithVariablesQueryPayloadTodos `json:"todos"`
 }
 
-type responseTodosQueryWithVariables struct {
-	Data   *TodosQueryWithVariablesPayload `json:"data"`
+type responseTodosWithVariablesQuery struct {
+	Data   *TodosWithVariablesQueryPayload `json:"data"`
 	Errors []gqlerror.Error                `json:errors`
 }
 
-func (c *Client) TodosQueryWithVariables(userId string) (*TodosQueryWithVariablesPayload, error) {
+func (c *Client) TodosWithVariablesQuery(userId string) (*TodosWithVariablesQueryPayload, error) {
 	requestBody, err := json.Marshal(request{
-		Query: TodosQueryWithVariables,
+		Query: TodosWithVariablesQuery,
 		Variables: map[string]interface{}{
 			"userId": userId,
 		},
@@ -380,7 +380,7 @@ func (c *Client) TodosQueryWithVariables(userId string) (*TodosQueryWithVariable
 		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, body)
 	}
 
-	var payload responseTodosQueryWithVariables
+	var payload responseTodosWithVariablesQuery
 	err = json.Unmarshal(body, &payload)
 
 	if err != nil {
