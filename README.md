@@ -56,6 +56,19 @@ go run github.com/stackworx-go/graphql/generate \
     --packageName "pkgname"
 ```
 
+## Default Configuration
+
+```yaml
+queries:
+ - ./**/*.graphql
+schema: schema.graphqls
+destination: ./client.go
+scalars:
+    - Upload:
+      packageName: github.com/99designs/gqlgen/graphql
+      name: Upload
+```
+
 ## Known Issues and Limitations
 
 - One Query per file

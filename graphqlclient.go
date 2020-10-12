@@ -29,18 +29,18 @@ func loadRequestTemplate() (*template.Template, error) {
 }
 
 // Generate Generate export
-func Generate(queriesGlob, schemaFile, destination, packageName string) error {
-	schema, err := internal.LoadSchema(schemaFile)
+func Generate(cfg *internal.Config) error {
+	schema, err := internal.LoadSchema(cfg.SchemaPath)
 
 	if err != nil {
 		return fmt.Errorf("failed to load schema: %w", err)
 	}
 
-	return GenerateWithSchema(queriesGlob, destination, packageName, schema)
+	return GenerateWithSchema(cfg.Queries, cfg.DestinationPath, cfg.PackageName, schema)
 }
 
 // GenerateWithSchema GenerateWithSchema export
-func GenerateWithSchema(queriesGlob, destination, packageName string, schema *ast.Schema) error {
+func GenerateWithSchema(queriesGlob []string, destination, packageName string, schema *ast.Schema) error {
 	clientTemplate, err := loadClientTemplate()
 
 	if err != nil {
@@ -53,7 +53,12 @@ func GenerateWithSchema(queriesGlob, destination, packageName string, schema *as
 		return err
 	}
 
-	files, err := internal.Glob(queriesGlob)
+	if len(queriesGlob) > 1 {
+		return fmt.Errorf("only single queries matcher currently supported")
+	}
+
+	// TODO: handle list
+	files, err := internal.Glob(queriesGlob[0])
 
 	if err != nil {
 		return fmt.Errorf("failed to find query files: %s", err)

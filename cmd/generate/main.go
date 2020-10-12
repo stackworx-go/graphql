@@ -1,53 +1,44 @@
 package main
 
 import (
+	"fmt"
+	"github.com/stackworx-go/graphql/internal"
+	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/stackworx-go/graphql"
 	"github.com/urfave/cli/v2"
+	"gopkg.in/yaml.v2"
 )
 
 func main() {
-	var queries string
-	var schemaFile string
-	var destination string
-	var packageName string
+	var configPath string
 
 	app := &cli.App{
 		Name:  "generate",
 		Usage: "Generate structs",
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:        "queries",
-				Value:       "integration/**/*.graphql",
-				Usage:       "golang glob for queries",
+			&cli.PathFlag{
+				Name:        "config",
 				Required:    true,
-				Destination: &queries,
-			},
-			&cli.StringFlag{
-				Name:        "schema",
-				Value:       "schema.graphqls",
-				Usage:       "golang glob for queries",
-				Required:    true,
-				Destination: &schemaFile,
-			},
-			&cli.StringFlag{
-				Name:        "destination",
-				Value:       "client.go",
-				Usage:       "Destination for generated client",
-				Required:    true,
-				Destination: &destination,
-			},
-			&cli.StringFlag{
-				Name:        "packageName",
-				Usage:       "Client Package Name",
-				Required:    true,
-				Destination: &packageName,
+				Usage:       "Yaml Configuration file path",
+				Destination: &configPath,
 			},
 		},
 		Action: func(c *cli.Context) error {
-			return graphql.Generate(queries, schemaFile, destination, packageName)
+			cfg := internal.DefaultConfig()
+
+			b, err := ioutil.ReadFile(c.Path("config"))
+			if err != nil {
+				return fmt.Errorf("unable to read config: %w", err)
+			}
+
+			if err := yaml.UnmarshalStrict(b, cfg); err != nil {
+				return fmt.Errorf("unable to parse config: %w", err)
+			}
+
+			return graphql.Generate(cfg)
 		},
 	}
 
