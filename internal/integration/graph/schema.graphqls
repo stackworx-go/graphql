@@ -2,6 +2,18 @@
 #
 # https://gqlgen.com/getting-started/
 
+scalar Upload
+
+input UploadFile {
+  id: Int!
+  file: Upload!
+}
+
+type File {
+  name: String!
+  content: String!
+}
+
 interface Node {
   id: ID!
 }
@@ -32,6 +44,17 @@ type CreateTodoPayload {
   todo: Todo!
 }
 
+input UploadFileInput {
+  id: ID!
+  file: Upload
+}
+
+type UploadFilePayload {
+  id: ID!
+  file: File!
+}
+
 type Mutation {
   createTodo(input: CreateTodoInput!): CreateTodoPayload!
+  uploadFile(input: UploadFileInput!): UploadFilePayload!
 }

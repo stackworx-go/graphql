@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"io/ioutil"
 
 	"github.com/stackworx-go/graphql/internal/integration/graph/generated"
 	"github.com/stackworx-go/graphql/internal/integration/graph/model"
@@ -13,6 +14,22 @@ import (
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.CreateTodoPayload, error) {
 	r.Resolver.CreateTodo.Args = input
 	return r.Resolver.CreateTodo.Data, r.Resolver.CreateTodo.Error
+}
+
+func (r *mutationResolver) UploadFile(ctx context.Context, input model.UploadFileInput) (*model.UploadFilePayload, error) {
+	data, err := ioutil.ReadAll(input.File.File)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.UploadFilePayload{
+		ID: input.ID,
+		File: &model.File{
+			Name:    input.File.Filename,
+			Content: string(data),
+		},
+	}, nil
 }
 
 func (r *queryResolver) Todos(ctx context.Context, userID *string) ([]*model.Todo, error) {
