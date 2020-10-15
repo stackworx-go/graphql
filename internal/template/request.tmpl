@@ -1,3 +1,4 @@
+{{ define "request" }}
 var {{ .Name }} = `{{ .Query }}`
 
 {{ range .Payload.Structs }}
@@ -11,33 +12,41 @@ type response{{ .Name }} struct {
 
 func (c *Client) {{ .Name }}(
     {{- if .HasInput}}{{range $index, $element := .Arguments}}{{ .Name }} {{ .Field.GoType }},{{end}}{{ end -}}
-	opts *RequestOpts) (*{{ .Name }}Payload, error) {  
-   	requestBody, err := json.Marshal(request{
+	opts *RequestOpts) (*{{ .Name }}Payload, error) {
+	requestBody, err := json.Marshal(request{
 		Query: {{ .Name }},
-		{{- if .HasInput }} 
+		{{- if .HasInput }}
 		Variables: map[string]interface{}{
-			{{- range $index, $element := .Arguments}}
+		{{- range $index, $element := .Arguments}}
 			"{{ .Name }}": {{ .Name }},
-			{{- end }}
+		{{- end }}
 		},
-    	{{- end }}
+		{{- end }}
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
+	{{- if .HasUploadFiles}}
+	req, err := c.buildMultiPartRequest(input, opts, requestBody)
+
+	if err != nil {
+		return nil, err
+	}
+	{{- else }}
 	req, err := http.NewRequest("POST", c.URL, bytes.NewReader(requestBody))
 
 	if err != nil {
 		return nil, err
-	}   
+	}
 
 	if opts != nil {
 		req.Header = opts.Header
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+	{{- end }}
 
 	resp, err := c.Do(req)
 
@@ -70,3 +79,4 @@ func (c *Client) {{ .Name }}(
 
 	return payload.Data, nil
 }
+{{ end }}

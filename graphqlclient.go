@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,22 +15,14 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func loadClientTemplate() *template.Template {
+func loadTemplate() *template.Template {
 
 	t := template.Must(template.New("client").
 		Parse(string(internal.MustAsset("template/client.tmpl"))),
 	)
 
 	template.Must(t.Parse(string(internal.MustAsset("template/struct.tmpl"))))
-	return t
-}
-
-func loadRequestTemplate() *template.Template {
-	t := template.Must(template.New("request").
-		Parse(string(internal.MustAsset("template/request.tmpl"))),
-	)
-
-	template.Must(t.Parse(string(internal.MustAsset("template/struct.tmpl"))))
+	template.Must(t.Parse(string(internal.MustAsset("template/request.tmpl"))))
 	return t
 }
 
@@ -46,8 +39,7 @@ func Generate(cfg *internal.Config) error {
 
 // GenerateWithSchema GenerateWithSchema export
 func GenerateWithSchema(queriesGlob []string, destination, packageName, scalarUpload string, schema *ast.Schema) error {
-	clientTemplate := loadClientTemplate()
-	requestTemplate := loadRequestTemplate()
+	templates := loadTemplate()
 
 	if len(queriesGlob) > 1 {
 		return fmt.Errorf("only single queries matcher currently supported")
@@ -89,11 +81,6 @@ func GenerateWithSchema(queriesGlob []string, destination, packageName, scalarUp
 				return fmt.Errorf("operation Name %s is not unique", operation.Name)
 			}
 
-			// Check for file uploads
-			//if operation.Operation == ast.Mutation {
-			//	operation.VariableDefinitions
-			//}
-
 			operationNames[operation.Name] = nil
 		}
 	}
@@ -117,32 +104,28 @@ func GenerateWithSchema(queriesGlob []string, destination, packageName, scalarUp
 
 	var buf bytes.Buffer
 
-	err = clientTemplate.Execute(&buf, struct {
+	err = templates.Execute(&buf, struct {
 		PackageName      string
 		InputStructs     generation.Structs
 		ScalarFileUpload string
+		Queries          []generation.Query
 	}{
 		PackageName:      packageName,
 		InputStructs:     inputStructs,
 		ScalarFileUpload: scalarUpload,
+		Queries:          generatedQueries,
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed execute client template: %w", err)
-	}
-
-	for _, q := range generatedQueries {
-		err = requestTemplate.Execute(&buf, q)
-
-		if err != nil {
-			return fmt.Errorf("failed execute request template: %w", err)
-		}
+		return fmt.Errorf("failed execute template: %w", err)
 	}
 
 	data, err := format.Source(buf.Bytes())
 
 	if err != nil {
-		return fmt.Errorf("failed to format code: %w", err)
+		log.Printf("failed to format code: %v", err)
+		// Allow file to be written for inspection
+		data = buf.Bytes()
 	}
 
 	f, err := os.OpenFile(destination, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0777)

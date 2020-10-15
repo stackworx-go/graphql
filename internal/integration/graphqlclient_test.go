@@ -2,6 +2,7 @@ package integration
 
 import (
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -203,6 +204,44 @@ func TestNodeTodoQuery(t *testing.T) {
 			// Id: "1",
 			TodoFragment: &NodeQueryPayloadNodeTodoFragment{
 				Text: "TODO",
+			},
+		},
+	})
+}
+
+func TestFileUploadMutation(t *testing.T) {
+	// given
+	resolvers := &graph.Resolver{}
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))
+	resolvers.Node.Data = &model.Todo{
+		ID:   "1",
+		Text: "TODO",
+	}
+
+	ts := httptest.NewServer(srv)
+	defer ts.Close()
+
+	client := Client{
+		URL: ts.URL,
+	}
+
+	// when
+	data, err := client.FileUploadMutation(UploadFileInput{
+		Id: "1",
+		File: &Upload{
+			File:        strings.NewReader("my file"),
+			Filename:    "test",
+			ContentType: "",
+		},
+	}, nil)
+
+	// then
+	assert.NoError(t, err)
+	// assert.Equal(t, resolvers.Node.Args, "1")
+	assert.Equal(t, data, &FileUploadMutationPayload{
+		UploadFile: FileUploadMutationPayloadUploadFile{
+			File: FileUploadMutationPayloadUploadFileFile{
+				Name: "test",
 			},
 		},
 	})

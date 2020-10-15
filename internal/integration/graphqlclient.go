@@ -7,7 +7,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
+	"reflect"
+	"strconv"
+	"strings"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
@@ -50,11 +54,6 @@ func (e *GraphqlError) Error() string {
 	return "Graphql Request Failed"
 }
 
-type UploadFile struct {
-	Id   int    `json:"id"`
-	File Upload `json:"file"`
-}
-
 type UploadFileInput struct {
 	Id   string  `json:"id"`
 	File *Upload `json:"file,omitempty"`
@@ -63,6 +62,11 @@ type UploadFileInput struct {
 type CreateTodoInput struct {
 	Text   string `json:"text"`
 	UserId string `json:"userId"`
+}
+
+type UploadFile struct {
+	Id   int    `json:"id"`
+	File Upload `json:"file"`
 }
 
 var CreateTodoMutation = `mutation CreateTodoMutation ($input: CreateTodoInput!) {
@@ -116,7 +120,6 @@ func (c *Client) CreateTodoMutation(input CreateTodoInput, opts *RequestOpts) (*
 	if err != nil {
 		return nil, err
 	}
-
 	req, err := http.NewRequest("POST", c.URL, bytes.NewReader(requestBody))
 
 	if err != nil {
@@ -198,18 +201,11 @@ func (c *Client) FileUploadMutation(input UploadFileInput, opts *RequestOpts) (*
 	if err != nil {
 		return nil, err
 	}
-
-	req, err := http.NewRequest("POST", c.URL, bytes.NewReader(requestBody))
+	req, err := c.buildMultiPartRequest(input, opts, requestBody)
 
 	if err != nil {
 		return nil, err
 	}
-
-	if opts != nil {
-		req.Header = opts.Header
-	}
-
-	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.Do(req)
 
@@ -327,7 +323,6 @@ func (c *Client) NodeQuery(nodeId string, opts *RequestOpts) (*NodeQueryPayload,
 	if err != nil {
 		return nil, err
 	}
-
 	req, err := http.NewRequest("POST", c.URL, bytes.NewReader(requestBody))
 
 	if err != nil {
@@ -414,7 +409,6 @@ func (c *Client) TodosQuery(opts *RequestOpts) (*TodosQueryPayload, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	req, err := http.NewRequest("POST", c.URL, bytes.NewReader(requestBody))
 
 	if err != nil {
@@ -504,7 +498,6 @@ func (c *Client) TodosWithVariablesQuery(userId string, opts *RequestOpts) (*Tod
 	if err != nil {
 		return nil, err
 	}
-
 	req, err := http.NewRequest("POST", c.URL, bytes.NewReader(requestBody))
 
 	if err != nil {
@@ -547,4 +540,111 @@ func (c *Client) TodosWithVariablesQuery(userId string, opts *RequestOpts) (*Tod
 	}
 
 	return payload.Data, nil
+}
+
+func extractFiles(data interface{}, path []string, files map[string]*Upload) error {
+	t := reflect.TypeOf(data)
+
+	if t == nil {
+		return nil
+	}
+
+	// Upload Found
+	if upload, ok := data.(Upload); ok {
+		files[strings.Join(path, ".")] = &upload
+		return nil
+	} else if upload, ok := data.(*Upload); ok {
+		files[strings.Join(path, ".")] = upload
+		return nil
+	}
+
+	switch t.Kind() {
+	case reflect.Array:
+		array := data.([]interface{})
+
+		for i, e := range array {
+			extractFiles(e, append(path, strconv.Itoa(i)), files)
+		}
+		break
+	case reflect.Struct:
+		t := reflect.TypeOf(data)
+		v := reflect.ValueOf(data)
+
+		for i := 0; i < v.NumField(); i++ {
+			f := t.Field(i)
+
+			// TODO: error if empty
+			jsonName := strings.Split(f.Tag.Get("json"), ",")[0]
+
+			extractFiles(v.Field(i).Interface(), append(path, jsonName), files)
+		}
+	case reflect.Interface:
+		return fmt.Errorf("interface not yet implemented")
+	}
+
+	return nil
+}
+
+func (c *Client) buildMultiPartRequest(input interface{}, opts *RequestOpts, requestBody []byte) (*http.Request, error) {
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+
+	operationsField, err := w.CreateFormField("operations")
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = fmt.Fprint(operationsField, string(requestBody))
+
+	if err != nil {
+		return nil, err
+	}
+
+	files := make(map[string]*Upload)
+	extractFiles(input, []string{"variables", "input"}, files)
+
+	pathMap := make(map[int][]string)
+
+	i := 0
+
+	for key, file := range files {
+		fw, err := w.CreateFormFile(strconv.Itoa(i), file.Filename)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err = io.Copy(fw, file.File); err != nil {
+			return nil, err
+		}
+
+		pathMap[i] = []string{key}
+		i++
+	}
+
+	pathMapBytes, err := json.Marshal(pathMap)
+
+	if err != nil {
+		return nil, err
+	}
+
+	mapField, err := w.CreateFormField("map")
+	fmt.Fprint(mapField, string(pathMapBytes))
+
+	w.Close()
+
+	req, err := http.NewRequest("POST", c.URL, &b)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if opts != nil {
+		req.Header = opts.Header
+	}
+
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	return req, nil
 }
