@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 
@@ -23,6 +24,16 @@ type request struct {
 	Extensions map[string]interface{} `json:"extensions"`
 }
 
+type Upload struct {
+	File        io.Reader
+	Filename    string
+	ContentType string
+}
+
+func (u *Upload) MarshalJSON() ([]byte, error) {
+	return json.Marshal(nil)
+}
+
 type RequestOpts struct {
 	Header http.Header
 }
@@ -39,9 +50,19 @@ func (e *GraphqlError) Error() string {
 	return "Graphql Request Failed"
 }
 
+type UploadFile struct {
+	Id   int    `json:"id"`
+	File Upload `json:"file"`
+}
+
 type CreateTodoInput struct {
 	Text   string `json:"text"`
 	UserId string `json:"userId"`
+}
+
+type UploadFileInput struct {
+	Id   string  `json:"id"`
+	File *Upload `json:"file,omitempty"`
 }
 
 var CreateTodoMutation = `mutation CreateTodoMutation ($input: CreateTodoInput!) {
@@ -123,10 +144,92 @@ func (c *Client) CreateTodoMutation(input CreateTodoInput, opts *RequestOpts) (*
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, body)
+		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, string(body))
 	}
 
 	var payload responseCreateTodoMutation
+	err = json.Unmarshal(body, &payload)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(payload.Errors) > 0 {
+		return nil, &GraphqlError{Errors: payload.Errors}
+	}
+
+	return payload.Data, nil
+}
+
+var FileUploadMutation = `mutation FileUploadMutation ($input: UploadFileInput!) {
+	uploadFile(input: $input) {
+		file {
+			name
+		}
+	}
+}
+`
+
+type FileUploadMutationPayloadUploadFileFile struct {
+	Name string `json:"name"`
+}
+
+type FileUploadMutationPayloadUploadFile struct {
+	File FileUploadMutationPayloadUploadFileFile `json:"file"`
+}
+
+type FileUploadMutationPayload struct {
+	UploadFile FileUploadMutationPayloadUploadFile `json:"uploadFile"`
+}
+
+type responseFileUploadMutation struct {
+	Data   *FileUploadMutationPayload `json:"data"`
+	Errors []gqlerror.Error           `json:"errors"`
+}
+
+func (c *Client) FileUploadMutation(input UploadFileInput, opts *RequestOpts) (*FileUploadMutationPayload, error) {
+	requestBody, err := json.Marshal(request{
+		Query: FileUploadMutation,
+		Variables: map[string]interface{}{
+			"input": input,
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", c.URL, bytes.NewReader(requestBody))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if opts != nil {
+		req.Header = opts.Header
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, string(body))
+	}
+
+	var payload responseFileUploadMutation
 	err = json.Unmarshal(body, &payload)
 
 	if err != nil {
@@ -252,7 +355,7 @@ func (c *Client) NodeQuery(nodeId string, opts *RequestOpts) (*NodeQueryPayload,
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, body)
+		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, string(body))
 	}
 
 	var payload responseNodeQuery
@@ -339,7 +442,7 @@ func (c *Client) TodosQuery(opts *RequestOpts) (*TodosQueryPayload, error) {
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, body)
+		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, string(body))
 	}
 
 	var payload responseTodosQuery
@@ -429,7 +532,7 @@ func (c *Client) TodosWithVariablesQuery(userId string, opts *RequestOpts) (*Tod
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, body)
+		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, string(body))
 	}
 
 	var payload responseTodosWithVariablesQuery

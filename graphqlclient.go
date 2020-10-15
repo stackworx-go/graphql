@@ -36,11 +36,11 @@ func Generate(cfg *internal.Config) error {
 		return fmt.Errorf("failed to load schema: %w", err)
 	}
 
-	return GenerateWithSchema(cfg.Queries, cfg.DestinationPath, cfg.PackageName, schema)
+	return GenerateWithSchema(cfg.Queries, cfg.DestinationPath, cfg.PackageName, cfg.Scalar.Upload, schema)
 }
 
 // GenerateWithSchema GenerateWithSchema export
-func GenerateWithSchema(queriesGlob []string, destination, packageName string, schema *ast.Schema) error {
+func GenerateWithSchema(queriesGlob []string, destination, packageName, scalarUpload string, schema *ast.Schema) error {
 	clientTemplate, err := loadClientTemplate()
 
 	if err != nil {
@@ -75,7 +75,7 @@ func GenerateWithSchema(queriesGlob []string, destination, packageName string, s
 		query, err := internal.LoadQuery(schema, file)
 
 		if err != nil {
-			return fmt.Errorf("Failed to process query %s: %w", file, err)
+			return fmt.Errorf("failed to process query %s: %w", file, err)
 		}
 
 		if len(query.Operations) > 1 {
@@ -90,8 +90,13 @@ func GenerateWithSchema(queriesGlob []string, destination, packageName string, s
 
 		for _, operation := range query.Operations {
 			if _, ok := operationNames[operation.Name]; ok {
-				return fmt.Errorf("Operation Name %s is not unique", operation.Name)
+				return fmt.Errorf("operation Name %s is not unique", operation.Name)
 			}
+
+			// Check for file uploads
+			//if operation.Operation == ast.Mutation {
+			//	operation.VariableDefinitions
+			//}
 
 			operationNames[operation.Name] = nil
 		}
@@ -107,20 +112,22 @@ func GenerateWithSchema(queriesGlob []string, destination, packageName string, s
 		generatedQueries = append(generatedQueries, newQueries...)
 	}
 
-	inputStructs, err := generation.GenerateInputStructs(schema)
+	inputStructs, err := generation.GenerateInputStructs(schema, scalarUpload)
 
 	if err != nil {
-		return fmt.Errorf("Failed to generate input structs: %w", err)
+		return fmt.Errorf("failed to generate input structs: %w", err)
 	}
 
 	var buf bytes.Buffer
 
 	err = clientTemplate.Execute(&buf, struct {
-		PackageName  string
-		InputStructs string
+		PackageName      string
+		InputStructs     string
+		ScalarFileUpload string
 	}{
-		PackageName:  packageName,
-		InputStructs: inputStructs.Print(),
+		PackageName:      packageName,
+		InputStructs:     inputStructs.Print(),
+		ScalarFileUpload: scalarUpload,
 	})
 
 	if err != nil {
@@ -177,32 +184,32 @@ func GenerateWithSchema(queriesGlob []string, destination, packageName string, s
 
 func validateQuery(file string, query *ast.QueryDocument) error {
 	if len(query.Fragments) > 0 {
-		return fmt.Errorf("Fragments are not allowed")
+		return fmt.Errorf("fragments are not allowed")
 	}
 
 	for _, op := range query.Operations {
 		if op.Name == "" {
-			return fmt.Errorf("Anonymous query found in %s", file)
+			return fmt.Errorf("anonymous query found in %s", file)
 		}
 
 		switch op.Operation {
 		case ast.Query:
 			if !strings.HasSuffix(op.Name, "Query") {
-				return fmt.Errorf("Expected Query Operation Name to end in Query, got: %s, file: %s", op.Name, file)
+				return fmt.Errorf("expected Query Operation Name to end in Query, got: %s, file: %s", op.Name, file)
 			}
 		case ast.Mutation:
 			if !strings.HasSuffix(op.Name, "Mutation") {
-				return fmt.Errorf("Expected Query Operation Name to end in Query, got: %s, file: %s", op.Name, file)
+				return fmt.Errorf("expected Query Operation Name to end in Query, got: %s, file: %s", op.Name, file)
 			}
 		case ast.Subscription:
-			return fmt.Errorf("Subscriptions are currently not supported %s in %s", op.Name, file)
+			return fmt.Errorf("subscriptions are currently not supported %s in %s", op.Name, file)
 		}
 
 		expectedName := op.Name + ".graphql"
 		_, filename := filepath.Split(file)
 
 		if expectedName != filename {
-			return fmt.Errorf("Expected filename to be %s, got: %s", expectedName, file)
+			return fmt.Errorf("expected filename to be %s, got: %s", expectedName, file)
 		}
 
 	}

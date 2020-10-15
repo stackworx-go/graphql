@@ -7,7 +7,7 @@ GOGET=$(GOCMD) get
 
 all: fmt build lint test
 build:
-	$(GOBUILD) -v cmd/generate/main.go
+	$(GOBUILD)
 test:
 	$(GOTEST) -short -v ./...
 clean:

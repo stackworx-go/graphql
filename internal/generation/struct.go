@@ -28,10 +28,11 @@ const (
 
 // Struct Struct export
 type Struct struct {
-	key       string
-	fields    []Field
-	typ       structType
-	fragments []Fragment
+	key           string
+	fields        []Field
+	typ           structType
+	fragments     []Fragment
+	hasFileUpload bool
 }
 
 type Structs []Struct
@@ -72,12 +73,12 @@ type argument struct {
 }
 
 // GenerateInputStructs GenerateInputStructs export
-func GenerateInputStructs(schema *ast.Schema) (Structs, error) {
+func GenerateInputStructs(schema *ast.Schema, scalarUpload string) (Structs, error) {
 	var inputStructs []Struct
 
 	for _, t := range schema.Types {
 		if !t.BuiltIn && t.Kind == ast.InputObject {
-			inputStructs = append(inputStructs, processInputType(t))
+			inputStructs = append(inputStructs, processInputType(t, scalarUpload))
 		}
 	}
 

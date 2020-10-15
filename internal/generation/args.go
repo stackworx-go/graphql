@@ -32,19 +32,26 @@ func processVariable(v *ast.VariableDefinition) argument {
 	}
 }
 
-func processInputType(def *ast.Definition) Struct {
+func processInputType(def *ast.Definition, scalarUpload string) Struct {
 	s := Struct{
 		key: def.Name,
 		typ: fragmentStruct,
 	}
+
+	hasFileUpload := false
 
 	for _, field := range def.Fields {
 		name := field.Name
 		f := newField(name, field.Type)
 		f.typ = field.Type.NamedType
 
+		if f.typ == scalarUpload {
+			hasFileUpload = true
+		}
+
 		s.fields = append(s.fields, *f)
 	}
 
+	s.hasFileUpload = hasFileUpload
 	return s
 }

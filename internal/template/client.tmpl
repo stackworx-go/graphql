@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 
@@ -21,6 +22,16 @@ type request struct {
 	// OperationName string                 `json:"operationName"`
 	Variables     interface{} `json:"variables"`
 	Extensions    map[string]interface{} `json:"extensions"`
+}
+
+type {{ .ScalarFileUpload }} struct {
+	File        io.Reader
+	Filename    string
+	ContentType string
+}
+
+func (u *{{ .ScalarFileUpload }}) MarshalJSON() ([]byte, error) {
+	return json.Marshal(nil)
 }
 
 type RequestOpts struct {
