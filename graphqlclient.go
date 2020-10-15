@@ -64,7 +64,7 @@ func GenerateWithSchema(queriesGlob []string, destination, packageName, scalarUp
 	operationNames := make(map[string]interface{})
 
 	if len(files) == 0 {
-		return fmt.Errorf("No queries found. Glob: %s", queriesGlob)
+		return fmt.Errorf("no queries found. Glob: %s", queriesGlob)
 	}
 
 	for _, file := range files {
@@ -75,11 +75,11 @@ func GenerateWithSchema(queriesGlob []string, destination, packageName, scalarUp
 		}
 
 		if len(query.Operations) > 1 {
-			return fmt.Errorf("Each query should contain a single operation. File: %s", file)
+			return fmt.Errorf("each query should contain a single operation. File: %s", file)
 		}
 
 		if err = validateQuery(file, query); err != nil {
-			return fmt.Errorf("Failed to validate query %s: %w", file, err)
+			return fmt.Errorf("failed to validate query %s: %w", file, err)
 		}
 
 		queries = append(queries, query)
@@ -101,14 +101,15 @@ func GenerateWithSchema(queriesGlob []string, destination, packageName, scalarUp
 	var generatedQueries []generation.Query
 
 	for _, query := range queries {
-		newQueries, err := generation.GenerateStruct(query)
+		newQueries, err := generation.GenerateQueries(query, schema, scalarUpload)
 		if err != nil {
 			return err
 		}
 		generatedQueries = append(generatedQueries, newQueries...)
+
 	}
 
-	inputStructs, err := generation.GenerateInputStructs(schema, scalarUpload)
+	inputStructs, err := generation.GenerateInputStructs(schema)
 
 	if err != nil {
 		return fmt.Errorf("failed to generate input structs: %w", err)
@@ -131,26 +132,7 @@ func GenerateWithSchema(queriesGlob []string, destination, packageName, scalarUp
 	}
 
 	for _, q := range generatedQueries {
-		type tmpl struct {
-			Name      string
-			Arguments generation.Arguments
-			HasInput  bool
-			Payload   *generation.PayloadStruct
-			Query     string
-		}
-
-		t := tmpl{
-			Name:    q.Name,
-			Query:   q.Query,
-			Payload: q.Payload,
-		}
-
-		if q.Arguments != nil {
-			t.Arguments = q.Arguments
-			t.HasInput = true
-		}
-
-		err = requestTemplate.Execute(&buf, t)
+		err = requestTemplate.Execute(&buf, q)
 
 		if err != nil {
 			return fmt.Errorf("failed execute request template: %w", err)

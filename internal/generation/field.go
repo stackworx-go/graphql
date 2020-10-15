@@ -28,7 +28,7 @@ func (f Field) Name() string {
 	return strings.Title(f.name)
 }
 
-func (f Field) GetType() string {
+func (f Field) GoType() string {
 	b := strings.Builder{}
 
 	if f.list {
@@ -42,6 +42,10 @@ func (f Field) GetType() string {
 	b.WriteString(mapType(f.typ))
 
 	return b.String()
+}
+
+func (f Field) GraphQLType() string {
+	return f.typ
 }
 
 func mapType(namedType string) string {

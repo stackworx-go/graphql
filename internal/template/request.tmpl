@@ -10,7 +10,7 @@ type response{{ .Name }} struct {
 }
 
 func (c *Client) {{ .Name }}(
-    {{- if .HasInput}}{{range $index, $element := .Arguments}}{{ .Name }} {{ .Type }},{{end}}{{ end -}}
+    {{- if .HasInput}}{{range $index, $element := .Arguments}}{{ .Name }} {{ .Field.GoType }},{{end}}{{ end -}}
 	opts *RequestOpts) (*{{ .Name }}Payload, error) {  
    	requestBody, err := json.Marshal(request{
 		Query: {{ .Name }},

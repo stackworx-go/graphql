@@ -2,7 +2,7 @@
 
 type {{ .Name }} struct {
 {{- range .Fields }}
-    {{ .Name }} {{ .GetType }} {{ .Tag }}
+    {{ .Name }} {{ .GoType }} {{ .Tag }}
 {{- end }}
 }
 

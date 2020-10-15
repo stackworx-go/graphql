@@ -22,36 +22,29 @@ func processVariable(v *ast.VariableDefinition) argument {
 	if v.Type.NamedType != "" {
 		f.typ = v.Type.NamedType
 	} else {
-		panic(fmt.Errorf("Unexpected named type: %s", v.Type))
+		panic(fmt.Errorf("unexpected named type: %s", v.Type))
 	}
 
 	// TODO: refactor this out of field
 	return argument{
-		Name: f.name,
-		Type: f.GetType(),
+		Name:  v.Variable,
+		Field: f,
 	}
 }
 
-func processInputType(def *ast.Definition, scalarUpload string) Struct {
+func processInputType(def *ast.Definition) Struct {
 	s := Struct{
 		key: def.Name,
 		typ: fragmentStruct,
 	}
-
-	hasFileUpload := false
 
 	for _, field := range def.Fields {
 		name := field.Name
 		f := newField(name, field.Type)
 		f.typ = field.Type.NamedType
 
-		if f.typ == scalarUpload {
-			hasFileUpload = true
-		}
-
 		s.Fields = append(s.Fields, *f)
 	}
 
-	s.hasFileUpload = hasFileUpload
 	return s
 }

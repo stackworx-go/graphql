@@ -16,6 +16,15 @@ type Query struct {
 	Name      string
 	Arguments Arguments
 	Payload   *PayloadStruct
+	FileMap   map[string]string
+}
+
+func (q Query) HasUploadFiles() bool {
+	return len(q.FileMap) > 0
+}
+
+func (q Query) HasInput() bool {
+	return q.Arguments != nil
 }
 
 type structType string
@@ -28,11 +37,10 @@ const (
 
 // Struct Struct export
 type Struct struct {
-	key           string
-	Fields        []Field
-	typ           structType
-	fragments     []Fragment
-	hasFileUpload bool
+	key       string
+	Fields    []Field
+	typ       structType
+	fragments []Fragment
 }
 
 type Structs []Struct
@@ -68,28 +76,29 @@ func (f Fragment) Name() string {
 type Arguments []argument
 
 type argument struct {
-	Name string
-	Type string
+	Name  string
+	Field *Field
 }
 
 // GenerateInputStructs GenerateInputStructs export
-func GenerateInputStructs(schema *ast.Schema, scalarUpload string) (Structs, error) {
+func GenerateInputStructs(schema *ast.Schema) (Structs, error) {
 	var inputStructs []Struct
 
 	for _, t := range schema.Types {
 		if !t.BuiltIn && t.Kind == ast.InputObject {
-			inputStructs = append(inputStructs, processInputType(t, scalarUpload))
+			inputStructs = append(inputStructs, processInputType(t))
 		}
 	}
 
 	return inputStructs, nil
 }
 
-// GenerateStruct GenerateStruct export
-func GenerateStruct(query *ast.QueryDocument) ([]Query, error) {
+// GenerateQueries GenerateQueries export
+func GenerateQueries(query *ast.QueryDocument, schema *ast.Schema, scalarUpload string) ([]Query, error) {
 	var queries []Query
 
 	for _, operation := range query.Operations {
+		// Insert extra fields similar to relay
 		insertQueryTypeFields(&operation.SelectionSet)
 
 		var buff bytes.Buffer
@@ -107,20 +116,47 @@ func GenerateStruct(query *ast.QueryDocument) ([]Query, error) {
 			Query:     buff.String(),
 			operation: operation,
 			Payload:   &PayloadStruct{},
-			Arguments: nil,
 		}
 
 		q.Payload.generatePayload(operation)
 
-		// TODO: rather make each variable its own argument
 		if len(operation.VariableDefinitions) > 0 {
 			q.Arguments = generateArgs(operation.VariableDefinitions)
 		}
+
+		q.FileMap = processFileUploads(q, schema, scalarUpload)
 
 		queries = append(queries, q)
 	}
 
 	return queries, nil
+}
+
+func processFileUploads(q Query, schema *ast.Schema, scalarUpload string) map[string]string {
+	fileMap := make(map[string]string)
+	for _, arg := range q.Arguments {
+		// TODO: check file list
+		def := schema.Types[arg.Field.typ]
+
+		path := []string{arg.Name}
+		processQueryArguments(def, schema, fileMap, path, scalarUpload)
+	}
+
+	return fileMap
+}
+
+func processQueryArguments(def *ast.Definition, schema *ast.Schema, fileMap map[string]string, path []string, scalarUpload string) {
+	// TODO: check file list
+	if def.Kind == ast.Scalar {
+		if def.Name == scalarUpload {
+			fileMap[strings.Join(path, ".")] = ""
+		}
+	} else if def.Kind == ast.InputObject {
+		for _, field := range def.Fields {
+			subPath := append(path, field.Name)
+			processQueryArguments(schema.Types[field.Type.Name()], schema, fileMap, subPath, scalarUpload)
+		}
+	}
 }
 
 func insertQueryTypeFields(selectionSet *ast.SelectionSet) {
@@ -167,6 +203,7 @@ func insertQueryTypeFields(selectionSet *ast.SelectionSet) {
 	// }
 }
 
+// TODO: move to template
 func (s Struct) FragmentUnmarshaler() string {
 	b := strings.Builder{}
 
