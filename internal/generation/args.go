@@ -28,7 +28,7 @@ func processVariable(v *ast.VariableDefinition) argument {
 	// TODO: refactor this out of field
 	return argument{
 		Name: f.name,
-		Type: f.getType(),
+		Type: f.GetType(),
 	}
 }
 
@@ -49,7 +49,7 @@ func processInputType(def *ast.Definition, scalarUpload string) Struct {
 			hasFileUpload = true
 		}
 
-		s.fields = append(s.fields, *f)
+		s.Fields = append(s.Fields, *f)
 	}
 
 	s.hasFileUpload = hasFileUpload

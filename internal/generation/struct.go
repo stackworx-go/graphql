@@ -29,7 +29,7 @@ const (
 // Struct Struct export
 type Struct struct {
 	key           string
-	fields        []Field
+	Fields        []Field
 	typ           structType
 	fragments     []Fragment
 	hasFileUpload bool
@@ -48,7 +48,7 @@ func (s Struct) Name() string {
 
 // PayloadStruct PayloadStruct export
 type PayloadStruct struct {
-	structs Structs
+	Structs Structs
 }
 
 // Fragment Fragment export
@@ -167,19 +167,7 @@ func insertQueryTypeFields(selectionSet *ast.SelectionSet) {
 	// }
 }
 
-// Print Print export
-func (p PayloadStruct) Print() string {
-	b := strings.Builder{}
-
-	for _, s := range p.structs {
-		b.WriteString(s.Print())
-		b.WriteString("\n")
-	}
-
-	return b.String()
-}
-
-func (s Struct) fragmentUnmarshaler() string {
+func (s Struct) FragmentUnmarshaler() string {
 	b := strings.Builder{}
 
 	for _, f := range s.fragments {
@@ -200,61 +188,6 @@ func (s Struct) fragmentUnmarshaler() string {
 	return b.String()
 }
 
-// Print Print export
-func (s Struct) Print() string {
-	b := strings.Builder{}
-
-	b.WriteString(fmt.Sprintf("type %s struct {\n", s.Name()))
-
-	for _, f := range s.fields {
-		b.WriteString(fmt.Sprintf("\t%s %s %s\n", strings.Title(f.name), f.getType(), f.tag))
-	}
-
-	b.WriteString("}\n")
-
-	// Custom json serializer
-	if len(s.fragments) > 0 {
-		b.WriteString("\n")
-		b.WriteString(fmt.Sprintf(`func (f *%s) UnmarshalJSON(data []byte) error {
-	var typename typename
-	err := json.Unmarshal(data, &typename)
-
-	if err != nil {
-		return err
-	}
-
-	// Extract local Fields if any
-	// Causes circular loop
-	// Will need second struct 
-	// err = json.Unmarshal(data, &f)
-
-	// f.__typename = typename.Typename
-
-	switch(typename.Typename) {
-%s
-	}
-
-	return nil
-}`, s.Name(), s.fragmentUnmarshaler()))
-		// 		b.WriteString("\n\n")
-
-		// 		b.WriteString(fmt.Sprintf(`func (f *%[1]s) Typename() string {
-		// 	return f.__typename
-		// }`, s.Name()))
-		// 		b.WriteString("\n")
-	}
-
-	return b.String()
-}
-
-// Print Print export
-func (ss Structs) Print() string {
-	b := strings.Builder{}
-
-	for _, s := range ss {
-		b.WriteString(s.Print())
-		b.WriteString("\n")
-	}
-
-	return b.String()
+func (s Struct) HasFragments() bool {
+	return len(s.fragments) > 0
 }

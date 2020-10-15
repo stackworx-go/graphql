@@ -11,20 +11,24 @@ import (
 type Field struct {
 	name     string
 	typ      string
-	tag      string
+	Tag      string
 	nullable bool
 	list     bool
 }
 
 func (f *Field) jsonTag(key string, omitempty bool) {
 	if omitempty {
-		f.tag = fmt.Sprintf("`json:\"%s,omitempty\"`", key)
+		f.Tag = fmt.Sprintf("`json:\"%s,omitempty\"`", key)
 	} else {
-		f.tag = fmt.Sprintf("`json:\"%s\"`", key)
+		f.Tag = fmt.Sprintf("`json:\"%s\"`", key)
 	}
 }
 
-func (f Field) getType() string {
+func (f Field) Name() string {
+	return strings.Title(f.name)
+}
+
+func (f Field) GetType() string {
 	b := strings.Builder{}
 
 	if f.list {

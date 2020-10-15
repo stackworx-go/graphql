@@ -14,18 +14,23 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func loadClientTemplate() (*template.Template, error) {
-	t := template.Must(template.New("client").
-		Parse(string(internal.MustAsset("template/client.tmpl"))))
+func loadClientTemplate() *template.Template {
 
-	return t, nil
+	t := template.Must(template.New("client").
+		Parse(string(internal.MustAsset("template/client.tmpl"))),
+	)
+
+	template.Must(t.Parse(string(internal.MustAsset("template/struct.tmpl"))))
+	return t
 }
 
-func loadRequestTemplate() (*template.Template, error) {
-	t := template.Must(template.New("client").
-		Parse(string(internal.MustAsset("template/request.tmpl"))))
+func loadRequestTemplate() *template.Template {
+	t := template.Must(template.New("request").
+		Parse(string(internal.MustAsset("template/request.tmpl"))),
+	)
 
-	return t, nil
+	template.Must(t.Parse(string(internal.MustAsset("template/struct.tmpl"))))
+	return t
 }
 
 // Generate Generate export
@@ -41,17 +46,8 @@ func Generate(cfg *internal.Config) error {
 
 // GenerateWithSchema GenerateWithSchema export
 func GenerateWithSchema(queriesGlob []string, destination, packageName, scalarUpload string, schema *ast.Schema) error {
-	clientTemplate, err := loadClientTemplate()
-
-	if err != nil {
-		return err
-	}
-
-	requestTemplate, err := loadRequestTemplate()
-
-	if err != nil {
-		return err
-	}
+	clientTemplate := loadClientTemplate()
+	requestTemplate := loadRequestTemplate()
 
 	if len(queriesGlob) > 1 {
 		return fmt.Errorf("only single queries matcher currently supported")
@@ -122,11 +118,11 @@ func GenerateWithSchema(queriesGlob []string, destination, packageName, scalarUp
 
 	err = clientTemplate.Execute(&buf, struct {
 		PackageName      string
-		InputStructs     string
+		InputStructs     generation.Structs
 		ScalarFileUpload string
 	}{
 		PackageName:      packageName,
-		InputStructs:     inputStructs.Print(),
+		InputStructs:     inputStructs,
 		ScalarFileUpload: scalarUpload,
 	})
 
@@ -139,14 +135,14 @@ func GenerateWithSchema(queriesGlob []string, destination, packageName, scalarUp
 			Name      string
 			Arguments generation.Arguments
 			HasInput  bool
-			Payload   string
+			Payload   *generation.PayloadStruct
 			Query     string
 		}
 
 		t := tmpl{
 			Name:    q.Name,
 			Query:   q.Query,
-			Payload: q.Payload.Print(),
+			Payload: q.Payload,
 		}
 
 		if q.Arguments != nil {

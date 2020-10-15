@@ -55,14 +55,14 @@ type UploadFile struct {
 	File Upload `json:"file"`
 }
 
-type CreateTodoInput struct {
-	Text   string `json:"text"`
-	UserId string `json:"userId"`
-}
-
 type UploadFileInput struct {
 	Id   string  `json:"id"`
 	File *Upload `json:"file,omitempty"`
+}
+
+type CreateTodoInput struct {
+	Text   string `json:"text"`
+	UserId string `json:"userId"`
 }
 
 var CreateTodoMutation = `mutation CreateTodoMutation ($input: CreateTodoInput!) {

@@ -1,0 +1,32 @@
+{{ define "struct" }}
+
+type {{ .Name }} struct {
+{{- range .Fields }}
+    {{ .Name }} {{ .GetType }} {{ .Tag }}
+{{- end }}
+}
+
+{{ if .HasFragments }}
+func (f *{{ .Name }}) UnmarshalJSON(data []byte) error {
+    var typename typename
+    err := json.Unmarshal(data, &typename)
+
+    if err != nil {
+        return err
+    }
+
+    // Extract local Fields if any
+    // Causes circular loop
+    // Will need second struct
+    // err = json.Unmarshal(data, &f)
+
+    // f.__typename = typename.Typename
+
+    switch(typename.Typename) {
+        {{ .FragmentUnmarshaler}}
+    }
+
+    return nil
+}
+{{ end }}
+{{ end }}

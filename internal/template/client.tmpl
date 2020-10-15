@@ -50,4 +50,6 @@ func (e *GraphqlError) Error() string {
 	return "Graphql Request Failed"
 }
 
-{{ .InputStructs }}
+{{ range .InputStructs }}
+	{{template "struct" . }}
+{{ end }}

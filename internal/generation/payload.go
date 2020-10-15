@@ -17,10 +17,10 @@ func (p *PayloadStruct) processSelectionSet(key string, structType structType, s
 		typ: structType,
 	}
 	for _, selection := range selectionSet {
-		s.fields = append(s.fields, p.processField(&s, selection))
+		s.Fields = append(s.Fields, p.processField(&s, selection))
 	}
 
-	p.structs = append(p.structs, s)
+	p.Structs = append(p.Structs, s)
 }
 
 func (p *PayloadStruct) processField(parent *Struct, selection ast.Selection) Field {

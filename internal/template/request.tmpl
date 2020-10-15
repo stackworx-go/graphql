@@ -1,6 +1,8 @@
 var {{ .Name }} = `{{ .Query }}`
 
-{{ .Payload }}
+{{ range .Payload.Structs }}
+	{{template "struct" . }}
+{{ end }}
 
 type response{{ .Name }} struct {
 	Data *{{ .Name }}Payload `json:"data"`
