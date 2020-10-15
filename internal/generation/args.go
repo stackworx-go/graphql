@@ -41,7 +41,13 @@ func processInputType(def *ast.Definition) Struct {
 	for _, field := range def.Fields {
 		name := field.Name
 		f := newField(name, field.Type)
-		f.typ = field.Type.NamedType
+
+		// List type
+		if field.Type.NamedType != "" {
+			f.typ = field.Type.NamedType
+		} else {
+			f.typ = field.Type.Elem.NamedType
+		}
 
 		s.Fields = append(s.Fields, *f)
 	}

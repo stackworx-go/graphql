@@ -70,6 +70,8 @@ func GenerateWithSchema(queriesGlob []string, destination, packageName, scalarUp
 			return fmt.Errorf("each query should contain a single operation. File: %s", file)
 		}
 
+		// TODO: validate filename
+
 		if err = validateQuery(file, query); err != nil {
 			return fmt.Errorf("failed to validate query %s: %w", file, err)
 		}

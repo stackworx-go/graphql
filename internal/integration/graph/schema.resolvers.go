@@ -32,6 +32,27 @@ func (r *mutationResolver) UploadFile(ctx context.Context, input model.UploadFil
 	}, nil
 }
 
+func (r *mutationResolver) UploadFiles(ctx context.Context, input model.UploadFilesInput) (*model.UploadFilesPayload, error) {
+	files := make([]*model.File, 0)
+
+	for _, f := range input.Files {
+		data, err := ioutil.ReadAll(f.File)
+
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, &model.File{
+			Name:    f.Filename,
+			Content: string(data),
+		})
+	}
+
+	return &model.UploadFilesPayload{
+		Files: files,
+	}, nil
+}
+
 func (r *queryResolver) Todos(ctx context.Context, userID *string) ([]*model.Todo, error) {
 	r.Resolver.Todos.Args = TodosArgs{
 		UserID: userID,

@@ -79,11 +79,11 @@ func extractFiles(data interface{}, path []string, files map[string]*Upload) err
 	}
 
 	switch t.Kind() {
-	case reflect.Array:
-		array := data.([]interface{})
+	case reflect.Slice:
+		v := reflect.ValueOf(data)
 
-		for i, e := range array {
-			extractFiles(e, append(path, strconv.Itoa(i)), files)
+		for i := 0; i < v.Len(); i++ {
+			extractFiles(v.Index(i).Interface(), append(path, strconv.Itoa(i)), files)
 		}
 		break
 	case reflect.Struct:
@@ -122,6 +122,7 @@ func (c *Client) buildMultiPartRequest(input interface{}, opts *RequestOpts, req
 	}
 
 	files := make(map[string]*Upload)
+	// TODO: this forces the argument to always be named input
 	extractFiles(input, []string{"variables", "input"}, files)
 
 	pathMap := make(map[int][]string)
@@ -140,7 +141,7 @@ func (c *Client) buildMultiPartRequest(input interface{}, opts *RequestOpts, req
 		}
 
 		pathMap[i] = []string{key}
-		i++
+		i += 1
 	}
 
 	pathMapBytes, err := json.Marshal(pathMap)

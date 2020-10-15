@@ -39,13 +39,21 @@ type UploadFile struct {
 }
 
 type UploadFileInput struct {
-	ID   string          `json:"id"`
-	File *graphql.Upload `json:"file"`
+	ID   string         `json:"id"`
+	File graphql.Upload `json:"file"`
 }
 
 type UploadFilePayload struct {
 	ID   string `json:"id"`
 	File *File  `json:"file"`
+}
+
+type UploadFilesInput struct {
+	Files []*graphql.Upload `json:"files"`
+}
+
+type UploadFilesPayload struct {
+	Files []*File `json:"files"`
 }
 
 type User struct {

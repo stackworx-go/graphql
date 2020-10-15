@@ -54,9 +54,9 @@ func (e *GraphqlError) Error() string {
 	return "Graphql Request Failed"
 }
 
-type UploadFileInput struct {
-	Id   string  `json:"id"`
-	File *Upload `json:"file,omitempty"`
+type UploadFile struct {
+	Id   int    `json:"id"`
+	File Upload `json:"file"`
 }
 
 type CreateTodoInput struct {
@@ -64,8 +64,12 @@ type CreateTodoInput struct {
 	UserId string `json:"userId"`
 }
 
-type UploadFile struct {
-	Id   int    `json:"id"`
+type UploadFilesInput struct {
+	Files []*Upload `json:"files,omitempty"`
+}
+
+type UploadFileInput struct {
+	Id   string `json:"id"`
 	File Upload `json:"file"`
 }
 
@@ -151,81 +155,6 @@ func (c *Client) CreateTodoMutation(input CreateTodoInput, opts *RequestOpts) (*
 	}
 
 	var payload responseCreateTodoMutation
-	err = json.Unmarshal(body, &payload)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if len(payload.Errors) > 0 {
-		return nil, &GraphqlError{Errors: payload.Errors}
-	}
-
-	return payload.Data, nil
-}
-
-var FileUploadMutation = `mutation FileUploadMutation ($input: UploadFileInput!) {
-	uploadFile(input: $input) {
-		file {
-			name
-		}
-	}
-}
-`
-
-type FileUploadMutationPayloadUploadFileFile struct {
-	Name string `json:"name"`
-}
-
-type FileUploadMutationPayloadUploadFile struct {
-	File FileUploadMutationPayloadUploadFileFile `json:"file"`
-}
-
-type FileUploadMutationPayload struct {
-	UploadFile FileUploadMutationPayloadUploadFile `json:"uploadFile"`
-}
-
-type responseFileUploadMutation struct {
-	Data   *FileUploadMutationPayload `json:"data"`
-	Errors []gqlerror.Error           `json:"errors"`
-}
-
-func (c *Client) FileUploadMutation(input UploadFileInput, opts *RequestOpts) (*FileUploadMutationPayload, error) {
-	requestBody, err := json.Marshal(request{
-		Query: FileUploadMutation,
-		Variables: map[string]interface{}{
-			"input": input,
-		},
-	})
-
-	if err != nil {
-		return nil, err
-	}
-	req, err := c.buildMultiPartRequest(input, opts, requestBody)
-
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := c.Do(req)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, string(body))
-	}
-
-	var payload responseFileUploadMutation
 	err = json.Unmarshal(body, &payload)
 
 	if err != nil {
@@ -542,6 +471,162 @@ func (c *Client) TodosWithVariablesQuery(userId string, opts *RequestOpts) (*Tod
 	return payload.Data, nil
 }
 
+var UploadFileMutation = `mutation UploadFileMutation ($input: UploadFileInput!) {
+	uploadFile(input: $input) {
+		id
+		file {
+			name
+			content
+		}
+	}
+}
+`
+
+type UploadFileMutationPayloadUploadFileFile struct {
+	Name    string `json:"name"`
+	Content string `json:"content"`
+}
+
+type UploadFileMutationPayloadUploadFile struct {
+	Id   string                                  `json:"id"`
+	File UploadFileMutationPayloadUploadFileFile `json:"file"`
+}
+
+type UploadFileMutationPayload struct {
+	UploadFile UploadFileMutationPayloadUploadFile `json:"uploadFile"`
+}
+
+type responseUploadFileMutation struct {
+	Data   *UploadFileMutationPayload `json:"data"`
+	Errors []gqlerror.Error           `json:"errors"`
+}
+
+func (c *Client) UploadFileMutation(input UploadFileInput, opts *RequestOpts) (*UploadFileMutationPayload, error) {
+	requestBody, err := json.Marshal(request{
+		Query: UploadFileMutation,
+		Variables: map[string]interface{}{
+			"input": input,
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	req, err := c.buildMultiPartRequest(input, opts, requestBody)
+
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, string(body))
+	}
+
+	var payload responseUploadFileMutation
+	err = json.Unmarshal(body, &payload)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(payload.Errors) > 0 {
+		return nil, &GraphqlError{Errors: payload.Errors}
+	}
+
+	return payload.Data, nil
+}
+
+var UploadFilesMutation = `mutation UploadFilesMutation ($input: UploadFilesInput!) {
+	uploadFiles(input: $input) {
+		files {
+			name
+			content
+		}
+	}
+}
+`
+
+type UploadFilesMutationPayloadUploadFilesFiles struct {
+	Name    string `json:"name"`
+	Content string `json:"content"`
+}
+
+type UploadFilesMutationPayloadUploadFiles struct {
+	Files []UploadFilesMutationPayloadUploadFilesFiles `json:"files"`
+}
+
+type UploadFilesMutationPayload struct {
+	UploadFiles UploadFilesMutationPayloadUploadFiles `json:"uploadFiles"`
+}
+
+type responseUploadFilesMutation struct {
+	Data   *UploadFilesMutationPayload `json:"data"`
+	Errors []gqlerror.Error            `json:"errors"`
+}
+
+func (c *Client) UploadFilesMutation(input UploadFilesInput, opts *RequestOpts) (*UploadFilesMutationPayload, error) {
+	requestBody, err := json.Marshal(request{
+		Query: UploadFilesMutation,
+		Variables: map[string]interface{}{
+			"input": input,
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	req, err := c.buildMultiPartRequest(input, opts, requestBody)
+
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Request Failed with status code: %d, body: %v", resp.StatusCode, string(body))
+	}
+
+	var payload responseUploadFilesMutation
+	err = json.Unmarshal(body, &payload)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(payload.Errors) > 0 {
+		return nil, &GraphqlError{Errors: payload.Errors}
+	}
+
+	return payload.Data, nil
+}
+
 func extractFiles(data interface{}, path []string, files map[string]*Upload) error {
 	t := reflect.TypeOf(data)
 
@@ -559,11 +644,11 @@ func extractFiles(data interface{}, path []string, files map[string]*Upload) err
 	}
 
 	switch t.Kind() {
-	case reflect.Array:
-		array := data.([]interface{})
+	case reflect.Slice:
+		v := reflect.ValueOf(data)
 
-		for i, e := range array {
-			extractFiles(e, append(path, strconv.Itoa(i)), files)
+		for i := 0; i < v.Len(); i++ {
+			extractFiles(v.Index(i).Interface(), append(path, strconv.Itoa(i)), files)
 		}
 		break
 	case reflect.Struct:
@@ -602,6 +687,7 @@ func (c *Client) buildMultiPartRequest(input interface{}, opts *RequestOpts, req
 	}
 
 	files := make(map[string]*Upload)
+	// TODO: this forces the argument to always be named input
 	extractFiles(input, []string{"variables", "input"}, files)
 
 	pathMap := make(map[int][]string)
@@ -620,7 +706,7 @@ func (c *Client) buildMultiPartRequest(input interface{}, opts *RequestOpts, req
 		}
 
 		pathMap[i] = []string{key}
-		i++
+		i += 1
 	}
 
 	pathMapBytes, err := json.Marshal(pathMap)

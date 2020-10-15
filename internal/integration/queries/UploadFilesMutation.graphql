@@ -1,0 +1,8 @@
+mutation UploadFilesMutation($input: UploadFilesInput!) {
+  uploadFiles(input: $input) {
+    files {
+      name
+      content
+    }
+  }
+}

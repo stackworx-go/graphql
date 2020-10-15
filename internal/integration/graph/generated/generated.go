@@ -54,8 +54,9 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateTodo func(childComplexity int, input model.CreateTodoInput) int
-		UploadFile func(childComplexity int, input model.UploadFileInput) int
+		CreateTodo  func(childComplexity int, input model.CreateTodoInput) int
+		UploadFile  func(childComplexity int, input model.UploadFileInput) int
+		UploadFiles func(childComplexity int, input model.UploadFilesInput) int
 	}
 
 	Query struct {
@@ -75,6 +76,10 @@ type ComplexityRoot struct {
 		ID   func(childComplexity int) int
 	}
 
+	UploadFilesPayload struct {
+		Files func(childComplexity int) int
+	}
+
 	User struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
@@ -84,6 +89,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.CreateTodoPayload, error)
 	UploadFile(ctx context.Context, input model.UploadFileInput) (*model.UploadFilePayload, error)
+	UploadFiles(ctx context.Context, input model.UploadFilesInput) (*model.UploadFilesPayload, error)
 }
 type QueryResolver interface {
 	Todos(ctx context.Context, userID *string) ([]*model.Todo, error)
@@ -150,6 +156,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UploadFile(childComplexity, args["input"].(model.UploadFileInput)), true
 
+	case "Mutation.uploadFiles":
+		if e.complexity.Mutation.UploadFiles == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_uploadFiles_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UploadFiles(childComplexity, args["input"].(model.UploadFilesInput)), true
+
 	case "Query.node":
 		if e.complexity.Query.Node == nil {
 			break
@@ -215,6 +233,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UploadFilePayload.ID(childComplexity), true
+
+	case "UploadFilesPayload.files":
+		if e.complexity.UploadFilesPayload.Files == nil {
+			break
+		}
+
+		return e.complexity.UploadFilesPayload.Files(childComplexity), true
 
 	case "User.id":
 		if e.complexity.User.ID == nil {
@@ -342,7 +367,7 @@ type CreateTodoPayload {
 
 input UploadFileInput {
   id: ID!
-  file: Upload
+  file: Upload!
 }
 
 type UploadFilePayload {
@@ -350,9 +375,18 @@ type UploadFilePayload {
   file: File!
 }
 
+input UploadFilesInput {
+  files: [Upload!]
+}
+
+type UploadFilesPayload {
+  files: [File!]!
+}
+
 type Mutation {
   createTodo(input: CreateTodoInput!): CreateTodoPayload!
   uploadFile(input: UploadFileInput!): UploadFilePayload!
+  uploadFiles(input: UploadFilesInput!): UploadFilesPayload!
 }
 `, BuiltIn: false},
 }
@@ -382,6 +416,20 @@ func (ec *executionContext) field_Mutation_uploadFile_args(ctx context.Context, 
 	var arg0 model.UploadFileInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNUploadFileInput2githubᚗcomᚋstackworxᚑgoᚋgraphqlᚋinternalᚋintegrationᚋgraphᚋmodelᚐUploadFileInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_uploadFiles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UploadFilesInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUploadFilesInput2githubᚗcomᚋstackworxᚑgoᚋgraphqlᚋinternalᚋintegrationᚋgraphᚋmodelᚐUploadFilesInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -650,6 +698,47 @@ func (ec *executionContext) _Mutation_uploadFile(ctx context.Context, field grap
 	res := resTmp.(*model.UploadFilePayload)
 	fc.Result = res
 	return ec.marshalNUploadFilePayload2ᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚋinternalᚋintegrationᚋgraphᚋmodelᚐUploadFilePayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_uploadFiles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_uploadFiles_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UploadFiles(rctx, args["input"].(model.UploadFilesInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.UploadFilesPayload)
+	fc.Result = res
+	return ec.marshalNUploadFilesPayload2ᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚋinternalᚋintegrationᚋgraphᚋmodelᚐUploadFilesPayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1002,6 +1091,40 @@ func (ec *executionContext) _UploadFilePayload_file(ctx context.Context, field g
 	res := resTmp.(*model.File)
 	fc.Result = res
 	return ec.marshalNFile2ᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚋinternalᚋintegrationᚋgraphᚋmodelᚐFile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UploadFilesPayload_files(ctx context.Context, field graphql.CollectedField, obj *model.UploadFilesPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UploadFilesPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Files, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.File)
+	fc.Result = res
+	return ec.marshalNFile2ᚕᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚋinternalᚋintegrationᚋgraphᚋmodelᚐFileᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -2189,7 +2312,25 @@ func (ec *executionContext) unmarshalInputUploadFileInput(ctx context.Context, o
 			}
 		case "file":
 			var err error
-			it.File, err = ec.unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			it.File, err = ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUploadFilesInput(ctx context.Context, obj interface{}) (model.UploadFilesInput, error) {
+	var it model.UploadFilesInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "files":
+			var err error
+			it.Files, err = ec.unmarshalOUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2311,6 +2452,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "uploadFile":
 			out.Values[i] = ec._Mutation_uploadFile(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "uploadFiles":
+			out.Values[i] = ec._Mutation_uploadFiles(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2440,6 +2586,33 @@ func (ec *executionContext) _UploadFilePayload(ctx context.Context, sel ast.Sele
 			}
 		case "file":
 			out.Values[i] = ec._UploadFilePayload_file(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var uploadFilesPayloadImplementors = []string{"UploadFilesPayload"}
+
+func (ec *executionContext) _UploadFilesPayload(ctx context.Context, sel ast.SelectionSet, obj *model.UploadFilesPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, uploadFilesPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UploadFilesPayload")
+		case "files":
+			out.Values[i] = ec._UploadFilesPayload_files(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2767,6 +2940,43 @@ func (ec *executionContext) marshalNFile2githubᚗcomᚋstackworxᚑgoᚋgraphql
 	return ec._File(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNFile2ᚕᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚋinternalᚋintegrationᚋgraphᚋmodelᚐFileᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.File) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFile2ᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚋinternalᚋintegrationᚋgraphᚋmodelᚐFile(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNFile2ᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚋinternalᚋintegrationᚋgraphᚋmodelᚐFile(ctx context.Context, sel ast.SelectionSet, v *model.File) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -2884,6 +3094,24 @@ func (ec *executionContext) marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋg
 	return res
 }
 
+func (ec *executionContext) unmarshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (*graphql.Upload, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v *graphql.Upload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec.marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, sel, *v)
+}
+
 func (ec *executionContext) unmarshalNUploadFileInput2githubᚗcomᚋstackworxᚑgoᚋgraphqlᚋinternalᚋintegrationᚋgraphᚋmodelᚐUploadFileInput(ctx context.Context, v interface{}) (model.UploadFileInput, error) {
 	return ec.unmarshalInputUploadFileInput(ctx, v)
 }
@@ -2900,6 +3128,24 @@ func (ec *executionContext) marshalNUploadFilePayload2ᚖgithubᚗcomᚋstackwor
 		return graphql.Null
 	}
 	return ec._UploadFilePayload(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUploadFilesInput2githubᚗcomᚋstackworxᚑgoᚋgraphqlᚋinternalᚋintegrationᚋgraphᚋmodelᚐUploadFilesInput(ctx context.Context, v interface{}) (model.UploadFilesInput, error) {
+	return ec.unmarshalInputUploadFilesInput(ctx, v)
+}
+
+func (ec *executionContext) marshalNUploadFilesPayload2githubᚗcomᚋstackworxᚑgoᚋgraphqlᚋinternalᚋintegrationᚋgraphᚋmodelᚐUploadFilesPayload(ctx context.Context, sel ast.SelectionSet, v model.UploadFilesPayload) graphql.Marshaler {
+	return ec._UploadFilesPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUploadFilesPayload2ᚖgithubᚗcomᚋstackworxᚑgoᚋgraphqlᚋinternalᚋintegrationᚋgraphᚋmodelᚐUploadFilesPayload(ctx context.Context, sel ast.SelectionSet, v *model.UploadFilesPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UploadFilesPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNUser2githubᚗcomᚋstackworxᚑgoᚋgraphqlᚋinternalᚋintegrationᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
@@ -3218,27 +3464,36 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return ec.marshalOString2string(ctx, sel, *v)
 }
 
-func (ec *executionContext) unmarshalOUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (graphql.Upload, error) {
-	return graphql.UnmarshalUpload(v)
-}
-
-func (ec *executionContext) marshalOUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v graphql.Upload) graphql.Marshaler {
-	return graphql.MarshalUpload(v)
-}
-
-func (ec *executionContext) unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (*graphql.Upload, error) {
-	if v == nil {
-		return nil, nil
+func (ec *executionContext) unmarshalOUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx context.Context, v interface{}) ([]*graphql.Upload, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
 	}
-	res, err := ec.unmarshalOUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
-	return &res, err
+	var err error
+	res := make([]*graphql.Upload, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
-func (ec *executionContext) marshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v *graphql.Upload) graphql.Marshaler {
+func (ec *executionContext) marshalOUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx context.Context, sel ast.SelectionSet, v []*graphql.Upload) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, sel, *v)
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

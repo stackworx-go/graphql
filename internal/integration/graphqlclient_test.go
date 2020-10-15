@@ -209,14 +209,10 @@ func TestNodeTodoQuery(t *testing.T) {
 	})
 }
 
-func TestFileUploadMutation(t *testing.T) {
+func TestUploadFileMutation(t *testing.T) {
 	// given
 	resolvers := &graph.Resolver{}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))
-	resolvers.Node.Data = &model.Todo{
-		ID:   "1",
-		Text: "TODO",
-	}
 
 	ts := httptest.NewServer(srv)
 	defer ts.Close()
@@ -226,23 +222,67 @@ func TestFileUploadMutation(t *testing.T) {
 	}
 
 	// when
-	data, err := client.FileUploadMutation(UploadFileInput{
+	data, err := client.UploadFileMutation(UploadFileInput{
 		Id: "1",
-		File: &Upload{
+		File: Upload{
 			File:        strings.NewReader("my file"),
-			Filename:    "test",
+			Filename:    "test.txt",
 			ContentType: "",
 		},
 	}, nil)
 
 	// then
 	assert.NoError(t, err)
-	// assert.Equal(t, resolvers.Node.Args, "1")
-	assert.Equal(t, data, &FileUploadMutationPayload{
-		UploadFile: FileUploadMutationPayloadUploadFile{
-			File: FileUploadMutationPayloadUploadFileFile{
-				Name: "test",
+	assert.Equal(t, data, &UploadFileMutationPayload{
+		UploadFile: UploadFileMutationPayloadUploadFile{
+			Id: "1",
+			File: UploadFileMutationPayloadUploadFileFile{
+				Name:    "test.txt",
+				Content: "my file",
 			},
+		},
+	})
+}
+
+func TestUploadFilesMutation(t *testing.T) {
+	// given
+	resolvers := &graph.Resolver{}
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))
+
+	ts := httptest.NewServer(srv)
+	defer ts.Close()
+
+	client := Client{
+		URL: ts.URL,
+	}
+
+	// when
+	data, err := client.UploadFilesMutation(UploadFilesInput{
+		Files: []*Upload{
+			{
+				File:        strings.NewReader("my file1"),
+				Filename:    "test1.txt",
+				ContentType: "",
+			},
+			{
+				File:        strings.NewReader("my file2"),
+				Filename:    "test2.txt",
+				ContentType: "",
+			},
+		},
+	}, nil)
+
+	// then
+	assert.NoError(t, err)
+	assert.Equal(t, data, &UploadFilesMutationPayload{
+		UploadFiles: UploadFilesMutationPayloadUploadFiles{
+			Files: []UploadFilesMutationPayloadUploadFilesFiles{{
+				Name:    "test1.txt",
+				Content: "my file1",
+			}, {
+				Name:    "test2.txt",
+				Content: "my file2",
+			}},
 		},
 	})
 }

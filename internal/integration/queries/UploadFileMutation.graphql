@@ -1,0 +1,9 @@
+mutation UploadFileMutation($input: UploadFileInput!) {
+  uploadFile(input: $input) {
+    id
+    file {
+      name
+      content
+    }
+  }
+}

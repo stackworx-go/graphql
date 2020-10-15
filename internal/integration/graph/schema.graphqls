@@ -46,7 +46,7 @@ type CreateTodoPayload {
 
 input UploadFileInput {
   id: ID!
-  file: Upload
+  file: Upload!
 }
 
 type UploadFilePayload {
@@ -54,7 +54,16 @@ type UploadFilePayload {
   file: File!
 }
 
+input UploadFilesInput {
+  files: [Upload!]
+}
+
+type UploadFilesPayload {
+  files: [File!]!
+}
+
 type Mutation {
   createTodo(input: CreateTodoInput!): CreateTodoPayload!
   uploadFile(input: UploadFileInput!): UploadFilePayload!
+  uploadFiles(input: UploadFilesInput!): UploadFilesPayload!
 }

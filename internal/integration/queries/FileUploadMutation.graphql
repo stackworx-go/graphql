@@ -1,7 +1,0 @@
-mutation FileUploadMutation($input: UploadFileInput!) {
-  uploadFile(input: $input) {
-    file {
-      name
-    }
-  }
-}
